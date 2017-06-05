@@ -19,6 +19,7 @@ and open the game pad at `http://localhost:9000/m` on your device
 * Rewrite the JS because it's kind of aweful
 * Use React for the UI parts, keep canvas for the game inside a React component
 * Make the canvas adapt to screen size (make it zoom, while having an internal known size)
+* Handle game lifecycle to be usable by regular people without much supervision
 
 ## Explore
 
