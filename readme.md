@@ -2,7 +2,8 @@
 
 run using sbt
 
-```sbt
+```
+sbt
 $ ~run
 ```
 
@@ -33,3 +34,8 @@ and open the game pad at `http://localhost:9000/m` on your device
   * redis pub/sub for eventing
   * QR codes to join game
   * etc ...
+
+
+## Streams
+
+https://scalafiddle.io/sf/CRjZ0JM/1
