@@ -1,13 +1,13 @@
-name := """play-spaceships"""
+name := "spaceships"
 
-version := "1.0-SNAPSHOT"
+version := "1.0"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val `spaceships` = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.10.6"
+scalaVersion := "2.11.7"
 
-libraryDependencies ++= Seq(
-  jdbc,
-  cache,
-  ws
-)
+libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test )
+
+unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
+
+resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"  
