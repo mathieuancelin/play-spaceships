@@ -1,9 +1,6 @@
-@(players: List[Player])
-
-@import scala.Predef; var test=0f
+@(username:String)
+@import models._
 
 @main("SpaceShip - Controller") {
-  @for(player <- players) {
-    @player.name
-  }
+  @username
 }

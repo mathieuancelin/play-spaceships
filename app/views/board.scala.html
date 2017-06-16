@@ -1,6 +1,31 @@
-@(game: Game)
+@(game: Game, players: Seq[Player])
+@import models._
 
 @main("SpaceShip - Board") {
-  @game.scale
+  <div id="players">
+    @for(player <- players) {
+      @player.name
+    }
+  </div>
   <canvas id="canvas" width="@game.scaleX()" height="@game.scaleY()"></canvas>
+  <script>
+      setInterval(loop,2000);
+      function loop() {
+          fetch('/getP', {
+              method: 'GET',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              }
+          }).then(function(r) {
+              return r.json();
+          }).then(function(players) {
+              var div = document.getElementById('players');
+              div.innerHTML = "";
+              players.map(function(player) {
+                  div.innerHTML += player.name + " ";
+              });
+          });
+      }
+  </script>
 }
