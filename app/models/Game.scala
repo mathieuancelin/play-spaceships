@@ -46,7 +46,5 @@ case class Bullet(
 )
 
 case class Player(
- name: String,
- posX: Int,
- posY: Int
+ name: String
 )

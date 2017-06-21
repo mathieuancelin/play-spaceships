@@ -1,4 +1,4 @@
-@(game: Game, players: Seq[Player])
+@(players: Seq[Player])
 @import models._
 
 @main("SpaceShip - Board") {
@@ -7,7 +7,7 @@
       @player.name
     }
   </div>
-  <canvas id="canvas" width="@game.scaleX()" height="@game.scaleY()"></canvas>
+  <canvas id="canvas" width="800" height="600"></canvas>
   <script>
       setInterval(loop,2000);
       function loop() {
