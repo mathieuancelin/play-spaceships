@@ -7,6 +7,9 @@
       @player.name
     }
   </div>
+  <input type="text" id="name" />
+  <button type="button" id="delete">DELETE</button>
+  <button type="button" id="clear">CLEAR ALL</button>
   <canvas id="canvas" width="800" height="600"></canvas>
   <script>
       setInterval(loop,2000);
@@ -27,5 +30,26 @@
               });
           });
       }
+      document.getElementById('delete').addEventListener('click', function(e) {
+          var name = document.getElementById('name').value;
+          fetch('/dropP/'+name, {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
+      document.getElementById('clear').addEventListener('click', function(e) {
+          fetch('/clear', {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
   </script>
 }

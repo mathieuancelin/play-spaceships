@@ -5,18 +5,18 @@
   <input type="text" id="name" />
   <button type="button" id="add">Let's go !</button>
   <script>
-          document.getElementById('add').addEventListener('click', function(e) {
-              var name = document.getElementById('name').value;
-              fetch('/addP/'+name, {
-                method: 'POST',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                body: '{}'
-              }).then(function(r) {
-                document.location.href = "http://localhost:9000/control/"+name;
-              });
+      document.getElementById('add').addEventListener('click', function(e) {
+          var name = document.getElementById('name').value;
+          fetch('/addP/'+name, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
+          }).then(function(r) {
+            document.location.href = "http://localhost:9000/control/"+name;
           });
+      });
   </script>
 }
