@@ -48,11 +48,11 @@ class StateGame {
       newState
   }
 
-  private val eventsAndTicks = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
+ //  private val eventsAndTicks: Source[Action] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
 
-  private val (queue, runnableGraph) = eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+  private val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] = source.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
 
-  val events: Source[GameState, NotUsed] = runnableGraph.run()
+  val (queue, events) = runnableGraph.run()
 
   def push[A <: Action](action: A): Unit = {
     queue.offer(action)
