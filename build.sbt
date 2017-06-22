@@ -1,15 +1,24 @@
-name := "spaceships"
+name := """spaceships"""
+organization := "com.serli"
+version := "1.0.0-SNAPSHOT"
+scalaVersion := "2.11.11"
 
-version := "1.0"
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala)
+  .settings(Javascript.buildUiSettings)
 
-lazy val `spaceships` = (project in file(".")).enablePlugins(PlayScala)
+libraryDependencies ++= Seq(
+  ws,
+  cache,
+  filters,
+  "org.reactivecouchbase" %% "good-old-play-framework" % "1.0.3",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
+)
 
-scalaVersion := "2.11.7"
+resolvers += "bintray" at "http://jcenter.bintray.com"
+resolvers += "good-old-play-framework repository" at "https://raw.githubusercontent.com/mathieuancelin/good-old-play-framework/master/repository/releases"
+resolvers += "reactivecouchbase-repo" at "https://raw.github.com/ReactiveCouchbase/repository/master/snapshots/"
 
-libraryDependencies ++= Seq( jdbc , cache , ws   , specs2 % Test)
-
-unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
-
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
-libraryDependencies += json
+PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")
+sources in (Compile, doc) := Seq.empty
+publishArtifact in (Compile, packageDoc) := false

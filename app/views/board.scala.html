@@ -1,7 +1,14 @@
 @(players: Seq[Player])
 @import models._
 
-@main("SpaceShip - Board") {
+@moreScripts = {
+    <script>
+        Spaceships.init(document.getElementById('app'));
+    </script>
+}
+
+@main("SpaceShip - Board", moreScripts = moreScripts) {
+  <div id="app"></div>  
   <div id="players">
     @for(player <- players) {
       @player.name

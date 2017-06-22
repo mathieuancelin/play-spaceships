@@ -1,12 +1,14 @@
 package controllers
 
+import javax.inject._
 import play.api._
 import play.api.mvc._
 import models._
 import play.api.libs.json._
 import state._
 
-class Application extends Controller {
+@Singleton
+class Application @Inject()() extends Controller {
 
   val stateGame = new StateGame()
   val queue = stateGame.queue
