@@ -1,10 +1,11 @@
 package state
 
 import akka.NotUsed
-import akka.actor.{ActorSystem, Cancellable}
-import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
+import akka.stream.{ActorMaterializer, OverflowStrategy}
 import models.Player
+import play.api.Logger
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 import scala.concurrent.duration._
@@ -28,7 +29,7 @@ case class GameState(players: Seq[Player] = Seq.empty[Player], leaderboard: Map[
 
 class StateGame() {
 
-  implicit val actorSystem = ActorSystem("pouet")
+  implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer.create(actorSystem)
   implicit val ec = actorSystem.dispatcher
 
@@ -53,19 +54,13 @@ class StateGame() {
 
   val (queue: SourceQueueWithComplete[Action], events: Source[Action, NotUsed]) = runnableGraph.run()
 
-  val stateStream: Source[GameState, NotUsed] = events.fold(GameState()) { (prevState, action) =>
-    println(s"action: $action")
+  val stateStream: Source[GameState, NotUsed] = events.scan(GameState()) { (prevState, action) =>
     val newState = reducer(prevState, action)
-    println(s"next state: $newState")
+    Logger.info(s"action: $action => next state: $newState")
     newState
   }
 
-  stateStream.runForeach(e => println(s"consumer 1 : $e"))
-  stateStream.runForeach(e => println(s"consumer 2 : $e"))
-
   def stream: Source[GameState, NotUsed] = stateStream
 
-  def push[A <: Action](action: A): Unit = {
-    queue.offer(action)
-  }
+  def push[A <: Action](action: A): Unit = queue.offer(action)
 }

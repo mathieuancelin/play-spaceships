@@ -3,7 +3,6 @@ package controllers
 import javax.inject._
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
 import models._
 import play.api.libs.json._
 import play.api.mvc._
@@ -43,14 +42,8 @@ class Application @Inject()()(implicit materializer: Materializer) extends Contr
   }
 
   def source = Action {
-    val source = Source(List(
-      GameState(),
-      GameState(),
-      GameState()
-    ))
     Ok.chunked(
-      // stateGame.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
-      source.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
+      stateGame.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
     ).as("text/event-stream")
   }
 
