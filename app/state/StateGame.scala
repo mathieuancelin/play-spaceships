@@ -1,6 +1,7 @@
 package state
 
 import akka.NotUsed
+import akka.actor.{ActorSystem, Cancellable}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
 import models.Player
@@ -25,7 +26,11 @@ case class GameState(players: Seq[Player] = Seq.empty[Player], leaderboard: Map[
   )
 }
 
-class StateGame()(implicit mat: Materializer) {
+class StateGame() {
+
+  implicit val actorSystem = ActorSystem("pouet")
+  implicit val materializer = ActorMaterializer.create(actorSystem)
+  implicit val ec = actorSystem.dispatcher
 
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
@@ -41,22 +46,24 @@ class StateGame()(implicit mat: Materializer) {
     case _ => game
   }
 
-  private val source: Source[GameState, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
-    .fold(GameState()) { (prevState, action) =>
-      println(s"action: $action")
-      val newState = reducer(prevState, action)
-      println(s"next state: $newState")
-      newState
+  val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
+  val eventsAndTicks: Source[Action, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
+  val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[Action, NotUsed])] =
+    eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+
+  val (queue: SourceQueueWithComplete[Action], events: Source[Action, NotUsed]) = runnableGraph.run()
+
+  val stateStream: Source[GameState, NotUsed] = events.fold(GameState()) { (prevState, action) =>
+    println(s"action: $action")
+    val newState = reducer(prevState, action)
+    println(s"next state: $newState")
+    newState
   }
 
- //  private val eventsAndTicks: Source[Action] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
+  stateStream.runForeach(e => println(s"consumer 1 : $e"))
+  stateStream.runForeach(e => println(s"consumer 2 : $e"))
 
-  private val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] =
-    source.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
-
-  val (queue: SourceQueueWithComplete[Action], events: Source[GameState, NotUsed]) = runnableGraph.run()
-
-  Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent).runForeach(t => queue.offer(t))
+  def stream: Source[GameState, NotUsed] = stateStream
 
   def push[A <: Action](action: A): Unit = {
     queue.offer(action)
