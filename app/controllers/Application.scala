@@ -11,7 +11,6 @@ import state._
 class Application @Inject()() extends Controller {
 
   val stateGame = new StateGame()
-  val queue = stateGame.queue
 
   def board = Action { implicit request =>
     Ok(views.html.board(stateGame.state.players))
@@ -22,23 +21,18 @@ class Application @Inject()() extends Controller {
   }
 
   def addNewPlayer(username: String) = Action {
-    queue.offer(addPlayer(Player(username,1,1)))
-    Ok(JsArray(stateGame.state.players.map(p => Json.obj("name" -> p.name))))
+    stateGame.push(AddPlayer(Player(username,1,1)))
+    Ok("")
   }
 
   def dropPlayer(username: String) = Action {
-    queue.offer(dropPlayer(username))
-    Ok(JsArray(stateGame.state.players.map(p => Json.obj("name" -> p.name))))
+    stateGame.push(DropPlayer(username))
+    Ok("")
   }
 
   def clearGame() = Action {
-    queue.offer(clearGame())
-    Ok(JsArray(stateGame.state.players.map(p => Json.obj("name" -> p.name))))
-  }
-
-  def getPlayer = Action {
-    val json = Json.toJson(stateGame.state.players.map(p => Json.obj("name" -> p.name)))
-    Ok(json)
+    stateGame.push(ClearGame())
+    Ok("")
   }
 
   def getLeaderboard = Action {
@@ -50,6 +44,10 @@ class Application @Inject()() extends Controller {
   def controller(username: String) = Action { implicit request =>
     // If username exists else redirection
     Ok(views.html.control(username))
+  }
+
+  def source = Action {
+    Ok.chunked(stateGame.events.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")).as("text/event-stream")
   }
 
 }

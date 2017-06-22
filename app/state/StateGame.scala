@@ -1,56 +1,60 @@
 package state
 
-import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.NotUsed
+import akka.stream.OverflowStrategy
+import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
 import models.Player
-
-/**
-  * Created by dsagnier on 21/06/17.
-  */
+import play.api.libs.json.{JsArray, JsValue, Json}
+import scala.concurrent.duration._
 
 // Class Action
 sealed trait Action
-case class addPlayer(player: Player) extends Action
-case class dropPlayer(username: String) extends Action
-case class addPoint(username: String, point: Int) extends Action
-case class clearGame() extends Action
+case class AddPlayer(player: Player) extends Action
+case class DropPlayer(username: String) extends Action
+case class AddPoint(username: String, point: Int) extends Action
+case class ClearGame() extends Action
+case object TickEvent extends Action
 
 // Class State
 sealed trait State
-case class GameState(players: Seq[Player], leaderboard: scala.collection.mutable.Map[String, Int]) extends State
-
+case class GameState(players: Seq[Player] = Seq.empty[Player], leaderboard: Map[String, Int] = Map.empty[String, Int]) extends State {
+  def toJson: JsValue = Json.obj(
+    "players" -> JsArray(players.map(_.toJson)),
+    "leaderboard" -> leaderboard
+  )
+}
 
 class StateGame {
-  // Init
-  private var _state = GameState(Seq.empty[Player], scala.collection.mutable.Map[String, Int]())
-  private val src = Source.queue[Action](50000, OverflowStrategy.dropTail)
-    .fold(_state) { (prevState, action) =>
-      println(s"action: $action")
-      val newState = reducer(prevState, action)
-      println(s"next state: $newState")
-      _state = newState
-      newState
-  }
-  private val actorSystem   = ActorSystem("Redux-System")
-  private val materializer  = ActorMaterializer.create(actorSystem)
-  private implicit val ec   = actorSystem.dispatcher
-  private val (_queue, _done) = src.toMat(Sink.ignore)(Keep.both).run()(materializer)
-  _done.andThen {
-    case _ => println("The End !")
-  }
 
-  // Function
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
-    case addPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
-    case dropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
-    case clearGame() => game.copy(players = Seq.empty[Player], leaderboard = scala.collection.mutable.Map[String, Int]())
-    case addPoint(u,p) => game/*.copy(leaderboard = game.leaderboard + (u -> game.leaderboard.get(u) + p))*/
+    case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
+    case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
+    case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
+    case AddPoint(u, p) => game.leaderboard.get(u) match {
+      case Some(score) => {
+        val newLeaderBoard = game.leaderboard + (u -> (score + p))
+        game.copy(leaderboard = newLeaderBoard)
+      }
+      case None => game
+    }
     case _ => game
   }
 
-  // Getter
-  def queue = _queue
-  def state = _state
+  private val source: Source[GameState, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
+    .fold(GameState()) { (prevState, action) =>
+      println(s"action: $action")
+      val newState = reducer(prevState, action)
+      println(s"next state: $newState")
+      newState
+  }
 
+  private val eventsAndTicks = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
+
+  private val (queue, runnableGraph) = eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+
+  val events: Source[GameState, NotUsed] = runnableGraph.run()
+
+  def push[A <: Action](action: A): Unit = {
+    queue.offer(action)
+  }
 }

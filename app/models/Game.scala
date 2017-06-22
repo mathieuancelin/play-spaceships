@@ -1,5 +1,7 @@
 package models
 
+import play.api.libs.json.{JsValue, Json}
+
 /**
   * Created by dsagnier on 13/06/17.
   */
@@ -49,4 +51,10 @@ case class Player(
  name: String,
  posX: Int,
  posY: Int
-)
+) {
+  def toJson: JsValue = Json.obj(
+    "name" -> name,
+    "posX" -> posX,
+    "posY" -> posY
+  )
+}
