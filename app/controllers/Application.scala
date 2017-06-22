@@ -8,10 +8,12 @@ import play.api.libs.json._
 import play.api.mvc._
 import state._
 
-@Singleton
-class Application @Inject()()(implicit materializer: Materializer) extends Controller {
+import scala.concurrent.ExecutionContext
 
-  val stateGame = new StateGame()
+@Singleton
+class Application @Inject()()(implicit ec: ExecutionContext) extends Controller {
+
+  val game = new StateGame()
 
   def board = Action { implicit request =>
     Ok(views.html.board(Seq.empty[Player]))
@@ -21,29 +23,31 @@ class Application @Inject()()(implicit materializer: Materializer) extends Contr
     Ok(views.html.mobilestart())
   }
 
-  def addNewPlayer(username: String) = Action {
-    stateGame.push(AddPlayer(Player(username,1,1)))
-    Ok("")
+  def addNewPlayer(username: String) = Action.async {
+    game.push(AddPlayer(Player(username, 1, 1))).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
   }
 
-  def dropPlayer(username: String) = Action {
-    stateGame.push(DropPlayer(username))
-    Ok("")
+  def dropPlayer(username: String) = Action.async {
+    game.push(DropPlayer(username)).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
   }
 
-  def clearGame() = Action {
-    stateGame.push(ClearGame())
-    Ok("")
+  def clearGame() = Action.async {
+    game.push(ClearGame()).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
   }
 
   def controller(username: String) = Action { implicit request =>
-    // If username exists else redirection
     Ok(views.html.control(username))
   }
 
   def source = Action {
     Ok.chunked(
-      stateGame.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
+      game.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
     ).as("text/event-stream")
   }
 

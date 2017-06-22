@@ -1,5 +1,7 @@
 package state
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
@@ -8,6 +10,7 @@ import models.Player
 import play.api.Logger
 import play.api.libs.json.{JsArray, JsValue, Json}
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 // Class Action
@@ -33,6 +36,9 @@ class StateGame() {
   implicit val materializer = ActorMaterializer.create(actorSystem)
   implicit val ec = actorSystem.dispatcher
 
+  private val initialState = GameState()
+  private val ref = new AtomicReference[GameState](initialState)
+
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
     case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
@@ -54,13 +60,16 @@ class StateGame() {
 
   val (queue: SourceQueueWithComplete[Action], events: Source[Action, NotUsed]) = runnableGraph.run()
 
-  val stateStream: Source[GameState, NotUsed] = events.scan(GameState()) { (prevState, action) =>
+  val stateStream: Source[GameState, NotUsed] = events.scan(initialState) { (prevState, action) =>
     val newState = reducer(prevState, action)
+    ref.set(newState)
     Logger.info(s"action: $action => next state: $newState")
     newState
   }
 
   def stream: Source[GameState, NotUsed] = stateStream
 
-  def push[A <: Action](action: A): Unit = queue.offer(action)
+  def push[A <: Action](action: A): Future[Unit] = queue.offer(action).map(_ => ())
+
+  def state: Future[GameState] = Future.successful(ref.get())
 }
