@@ -1,10 +1,11 @@
 package state
 
 import akka.NotUsed
-import akka.stream.OverflowStrategy
+import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
 import models.Player
 import play.api.libs.json.{JsArray, JsValue, Json}
+
 import scala.concurrent.duration._
 
 // Class Action
@@ -24,7 +25,7 @@ case class GameState(players: Seq[Player] = Seq.empty[Player], leaderboard: Map[
   )
 }
 
-class StateGame {
+class StateGame()(implicit mat: Materializer) {
 
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
@@ -50,9 +51,12 @@ class StateGame {
 
  //  private val eventsAndTicks: Source[Action] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
 
-  private val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] = source.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+  private val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] =
+    source.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
 
-  val (queue, events) = runnableGraph.run()
+  val (queue: SourceQueueWithComplete[Action], events: Source[GameState, NotUsed]) = runnableGraph.run()
+
+  Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent).runForeach(t => queue.offer(t))
 
   def push[A <: Action](action: A): Unit = {
     queue.offer(action)

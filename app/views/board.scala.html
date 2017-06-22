@@ -7,7 +7,7 @@
     </script>
 }
 
-@main("SpaceShip - Board", moreScripts = moreScripts) {
+@main("SpaceShip - Board") {
   <div id="app"></div>  
   <div id="players">
     @for(player <- players) {
@@ -19,7 +19,7 @@
   <button type="button" id="clear">CLEAR ALL</button>
   <canvas id="canvas" width="800" height="600"></canvas>
   <script>
-      setInterval(loop,2000);
+      //setInterval(loop,2000);
       function loop() {
           fetch('/getP', {
               method: 'GET',
@@ -58,5 +58,12 @@
               body: '{}'
           });
       });
+      var source = new EventSource('/source');
+      source.onmessage = function(e) {
+           var data = e.data;
+           console.log(data);
+           document.getElementById('app').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+      };
+
   </script>
 }

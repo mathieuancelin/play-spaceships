@@ -1,19 +1,20 @@
 package controllers
 
 import javax.inject._
-import play.api._
-import play.api.mvc._
+
+import akka.stream.Materializer
 import models._
 import play.api.libs.json._
+import play.api.mvc._
 import state._
 
 @Singleton
-class Application @Inject()() extends Controller {
+class Application @Inject()()(implicit materializer: Materializer) extends Controller {
 
   val stateGame = new StateGame()
 
   def board = Action { implicit request =>
-    Ok(views.html.board(stateGame.state.players))
+    Ok(views.html.board(Seq.empty[Player]))
   }
 
   def mobileStart = Action { implicit request =>
@@ -35,19 +36,18 @@ class Application @Inject()() extends Controller {
     Ok("")
   }
 
-  def getLeaderboard = Action {
-    //val json = Json.toJson(stateGame.state.leaderboard.map(p => Json.obj("key" -> p)))
-    val json = Json.obj("Leaderboard" -> stateGame.state.leaderboard.toSeq.sortBy(-_._2).toMap)
-    Ok(json)
-  }
-
   def controller(username: String) = Action { implicit request =>
     // If username exists else redirection
     Ok(views.html.control(username))
   }
 
   def source = Action {
-    Ok.chunked(stateGame.events.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")).as("text/event-stream")
+    Ok.chunked(
+      stateGame.events.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n").map(t => {
+        println(t)
+        t
+      })
+    ).as("text/event-stream")
   }
 
 }
