@@ -54,18 +54,17 @@ class StateGame() {
   }
 
   val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
-  val eventsAndTicks: Source[Action, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent))
-  val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[Action, NotUsed])] =
-    eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
-
-  val (queue: SourceQueueWithComplete[Action], events: Source[Action, NotUsed]) = runnableGraph.run()
-
-  val stateStream: Source[GameState, NotUsed] = events.scan(initialState) { (prevState, action) =>
+  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
     val newState = reducer(prevState, action)
     ref.set(newState)
     Logger.info(s"action: $action => next state: $newState")
     newState
   }
+
+  val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] =
+    eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
+
+  val (queue: SourceQueueWithComplete[Action], stateStream: Source[GameState, NotUsed]) = runnableGraph.run()
 
   def stream: Source[GameState, NotUsed] = stateStream
 

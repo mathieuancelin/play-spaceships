@@ -13,7 +13,7 @@ window.$ = $;
 window.jQuery = $;
 require('bootstrap/dist/js/bootstrap.min');
 
-const App = (props) => <h1>Hello World!</h1>;
+const App = (props) => <h1>Hello S!</h1>;
 
 export function init(node) {
   ReactDOM.render(<App />, node);

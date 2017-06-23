@@ -7,8 +7,9 @@
     </script>
 }
 
-@main("SpaceShip - Board") {
-  <div id="app"></div>  
+@main("SpaceShip - Board", moreScripts = moreScripts) {
+  <div id="app"></div>
+  <div id="data"></div>
   <div id="players">
     @for(player <- players) {
       @player.name
@@ -62,7 +63,7 @@
       source.onmessage = function(e) {
            var data = e.data;
            console.log(data);
-           document.getElementById('app').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+           document.getElementById('data').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
       };
 
   </script>
