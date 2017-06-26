@@ -6,6 +6,7 @@ GET     /m                          controllers.Application.mobileStart
 GET     /control/:username          controllers.Application.controller(username)
 POST    /addP/:username             controllers.Application.addNewPlayer(username)
 POST    /dropP/:username            controllers.Application.dropPlayer(username)
+POST    /addPnt/:username/:point    controllers.Application.addPoint(username, point)
 POST    /clear                      controllers.Application.clearGame()
 GET     /source                     controllers.Application.source()
 

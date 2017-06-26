@@ -3,13 +3,14 @@
 
 @moreScripts = {
     <script>
-        Spaceships.init(document.getElementById('app'));
     </script>
 }
 
 @main("SpaceShip - Board", moreScripts = moreScripts) {
   <div id="app"></div>
+  <div id="timer"></div>
   <div id="data"></div>
+
   <div id="players">
     @for(player <- players) {
       @player.name
@@ -18,26 +19,10 @@
   <input type="text" id="name" />
   <button type="button" id="delete">DELETE</button>
   <button type="button" id="clear">CLEAR ALL</button>
-  <canvas id="canvas" width="800" height="600"></canvas>
+  <input type="text" id="nameL" />
+  <input type="text" id="point" />
+  <button type="button" id="addpoint">ADD POINT</button>
   <script>
-      //setInterval(loop,2000);
-      function loop() {
-          fetch('/getP', {
-              method: 'GET',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              }
-          }).then(function(r) {
-              return r.json();
-          }).then(function(players) {
-              var div = document.getElementById('players');
-              div.innerHTML = "";
-              players.map(function(player) {
-                  div.innerHTML += player.name + " ";
-              });
-          });
-      }
       document.getElementById('delete').addEventListener('click', function(e) {
           var name = document.getElementById('name').value;
           fetch('/dropP/'+name, {
@@ -49,6 +34,7 @@
               body: '{}'
           });
       });
+
       document.getElementById('clear').addEventListener('click', function(e) {
           fetch('/clear', {
               method: 'POST',
@@ -59,11 +45,26 @@
               body: '{}'
           });
       });
+
+      document.getElementById('addpoint').addEventListener('click', function(e) {
+          var name = document.getElementById('nameL').value;
+          var point = document.getElementById('point').value;
+          fetch('/addPnt/'+name+'/'+point, {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
+
       var source = new EventSource('/source');
       source.onmessage = function(e) {
            var data = e.data;
            console.log(data);
            document.getElementById('data').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+           Spaceships.init(document.getElementById('app'), JSON.parse(data));
       };
 
   </script>

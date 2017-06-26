@@ -42,7 +42,6 @@ class StateGame() {
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
     case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
-    case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
     case AddPoint(u, p) => game.leaderboard.get(u) match {
       case Some(score) => {
         val newLeaderBoard = game.leaderboard + (u -> (score + p))
@@ -50,6 +49,7 @@ class StateGame() {
       }
       case None => game
     }
+    case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
     case _ => game
   }
 
@@ -57,7 +57,7 @@ class StateGame() {
   val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
     val newState = reducer(prevState, action)
     ref.set(newState)
-    Logger.info(s"action: $action => next state: $newState")
+    //Logger.info(s"action: $action => next state: $newState")
     newState
   }
 
