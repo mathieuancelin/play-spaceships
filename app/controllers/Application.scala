@@ -42,6 +42,12 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
+  def movePlayer(username: String, x: String, y: String) = Action.async {
+    game.push(MovePlayer(username, x.toInt, y.toInt)).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
   def clearGame() = Action.async {
     game.push(ClearGame()).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))

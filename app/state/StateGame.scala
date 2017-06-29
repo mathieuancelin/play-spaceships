@@ -18,6 +18,7 @@ sealed trait Action
 case class AddPlayer(player: Player) extends Action
 case class DropPlayer(username: String) extends Action
 case class AddPoint(username: String, point: Int) extends Action
+case class MovePlayer(username: String, x: Int, y: Int) extends Action
 case class ClearGame() extends Action
 case object TickEvent extends Action
 
@@ -48,6 +49,15 @@ class StateGame() {
         game.copy(leaderboard = newLeaderBoard)
       }
       case None => game
+    }
+    case MovePlayer(u,x,y) => {
+      
+      /*
+      * METTRE A JOUR LE PLAYER PLUTOT QUE DELETE ET RECREATE
+      * */
+
+      game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
+      game.copy(players = game.players :+ new Player(u,x,y))
     }
     case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
     case _ => game

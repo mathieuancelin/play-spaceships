@@ -2,8 +2,12 @@
 @import models._
 
 @main("SpaceShip - Create Ship") {
-  <input type="text" id="name" />
-  <button type="button" id="add">Let's go !</button>
+  <h3 style="text-align:center;">Créer un vaisseau</h3>
+  <div style="text-align:center;padding-bottom:10px;">
+    <label for="name">Choisit un nom :</label>
+    <input type="text" id="name" />
+    <button type="button" id="add">Let's go !</button>
+  </div>
   <script>
       document.getElementById('add').addEventListener('click', function(e) {
           var name = document.getElementById('name').value;

@@ -7,6 +7,7 @@ GET     /control/:username          controllers.Application.controller(username)
 POST    /addP/:username             controllers.Application.addNewPlayer(username)
 POST    /dropP/:username            controllers.Application.dropPlayer(username)
 POST    /addPnt/:username/:point    controllers.Application.addPoint(username, point)
+POST    /mvP/:username/:x/:y        controllers.Application.movePlayer(username, x, y)
 POST    /clear                      controllers.Application.clearGame()
 GET     /source                     controllers.Application.source()
 

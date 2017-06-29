@@ -55,24 +55,42 @@ class App extends React.Component {
         ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
-        ctx.fillText(this.props.data,0,20);
+        ctx.fillText(JSON.stringify(this.props.data),0,20);
         setTimeout(this.draw, 100);
 
     }
 
     render() {
-      var dataJ = JSON.stringify(this.props.data);
-      var rows = [];
-      for(var score in this.props.data.leaderboard) {
-          rows.push(score);
-      }
-      return (
-          <div>
+        var dataJ = JSON.stringify(this.props.data);
+        var rows = [];
+        // Opti possible ???
+        for(var score in this.props.data.leaderboard) {
+            rows.push(score+": "+this.props.data.leaderboard[score]);
+        }
+
+        return (
+            <div>
               <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
               {dataJ}
-              aa{rows.keys()}aa
-          </div>
-      );
+              <Leaderboard rows={rows}/>
+            </div>
+        );
+    }
+}
+
+class Leaderboard extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    render() {
+        const rows = this.props.rows.map(row => {
+            return (
+                <li key={row.toString()}>{row}</li>
+            );
+        });
+        return (
+            <div>{rows}</div>
+        );
     }
 }
 

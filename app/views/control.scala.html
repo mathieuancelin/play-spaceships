@@ -3,5 +3,39 @@
 @import models._
 
 @main("SpaceShip - Controller") {
-  @username
+  <h4 style="text-align:center;">@username</h4>
+  <div class="col-xs-6" style="border: 2px solid black; background-color: #adadad; height: 120px;" id="joystick"></div>
+  <div class="col-xs-6" style="border: 2px solid black; background-color: #afd9ee; height: 120px;" id="tir"></div>
+  <div>&nbsp;</div>
+
+  <script src="/assets/javascripts/nipplejs.min.js"></script>
+  <script>
+    const joystickParams = {
+      zone: document.getElementById("joystick"),
+      color: "blue"
+    };
+    const manager = nipplejs.create(joystickParams);
+    manager.on('added', function(evt, nipple) {
+      console.log("added");
+      nipple.on('move', function(evt) {
+        fetch('/mvP/@username/1/1', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
+          });
+      });
+    });
+
+    const tirParams = {
+        zone: document.getElementById("tir"),
+        color: "blue"
+    };
+    const manager2 = nipplejs.create(tirParams);
+    manager2.on('added', function(evt, nipple) {
+        console.log("tir");
+    });
+  </script>
 }
