@@ -53,11 +53,23 @@ class App extends React.Component {
     draw = () => {
         const ctx = this.canvasRef.getContext("2d");
         ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
-        ctx.fillStyle = "black";
-        ctx.font = "14px Arial";
-        ctx.fillText(JSON.stringify(this.props.data),0,20);
+        this.drawShips(ctx, this.props.data.players);
         setTimeout(this.draw, 100);
+    }
 
+    drawShips = (ctx, players) => {
+        for(var player in players) {
+            var p = players[player];
+            ctx.beginPath();
+            // Nom
+            ctx.fillStyle = "black";
+            ctx.font = "14px Arial";
+            ctx.fillText(p.name, p.posX-15, -p.posY-13)
+            // Cercle
+            ctx.lineWidth="2";
+            ctx.arc(p.posX,-p.posY, 10, 0, 2* Math.PI);
+            ctx.stroke();
+        }
     }
 
     render() {

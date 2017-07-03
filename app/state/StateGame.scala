@@ -55,9 +55,20 @@ class StateGame() {
       /*
       * METTRE A JOUR LE PLAYER PLUTOT QUE DELETE ET RECREATE
       * */
-
-      game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
-      game.copy(players = game.players :+ new Player(u,x,y))
+      game.players
+        .filter(_.name == u)
+        .headOption
+        .map(player =>
+          game.copy(players = game.players.filter(_.name != u) :+
+            new Player(player.name,player.posX+x,player.posY+y))
+        )
+        .getOrElse(game);
+/*      if(!game.players.filter(_.name == u).isEmpty) {
+        game.copy(players = game.players.filter(_.name != u) :+
+          new Player(player.apply(0).name,player.apply(0).posX+x,player.apply(0).posY+y))
+      } else {
+        game
+      }*/
     }
     case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
     case _ => game

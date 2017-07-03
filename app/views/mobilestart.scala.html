@@ -4,7 +4,7 @@
 @main("SpaceShip - Create Ship") {
   <h3 style="text-align:center;">Créer un vaisseau</h3>
   <div style="text-align:center;padding-bottom:10px;">
-    <label for="name">Choisit un nom :</label>
+    <label for="name">Choisis un nom :</label>
     <input type="text" id="name" />
     <button type="button" id="add">Let's go !</button>
   </div>
@@ -19,7 +19,7 @@
             },
             body: '{}'
           }).then(function(r) {
-            document.location.href = "http://localhost:9000/control/"+name;
+            document.location.href = "/control/"+name;
           });
       });
   </script>
