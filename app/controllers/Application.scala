@@ -63,5 +63,4 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
       game.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
     ).as("text/event-stream")
   }
-
 }
