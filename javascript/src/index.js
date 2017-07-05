@@ -169,7 +169,7 @@ class Leaderboard extends React.Component {
 }
 
 export function init(node, data) {
-  ReactDOM.render(<App data={data}/>, node);
+  ReactDOM.render(<App data={data} />, node);
 }
 
 export function joystick(node, data, name) {

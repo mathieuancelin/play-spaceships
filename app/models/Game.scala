@@ -43,14 +43,19 @@ class Game {
 }
 
 case class Bullet(
- posX: Int,
- posY: Int
+  posX: Int,
+  posY: Int
+)
+
+case class Vector(
+  x: Int,
+  y: Int
 )
 
 case class Player(
- name: String,
- posX: Int,
- posY: Int
+  name: String,
+  posX: Int,
+  posY: Int
 ) {
   def toJson: JsValue = Json.obj(
     "name" -> name,
