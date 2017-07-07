@@ -26,24 +26,62 @@ class App extends React.Component {
 
     draw = () => {
         const ctx = this.canvasRef.getContext("2d");
+        this.moveBullet();
         ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
-        this.drawShips(ctx, this.props.data.players);
+        for(var player in this.props.data.players) {
+            var p = this.props.data.players[player];
+            ctx.save();
+            ctx.translate(p.posX,-p.posY);
+            ctx.rotate(-p.angle*Math.PI/180);
+            this.ships(ctx,p.color);
+            ctx.restore();
+        }
+        for(var bullet in this.props.data.bullets) {
+            var b = this.props.data.bullets[bullet];
+            ctx.save();
+            ctx.translate(b.posX, -b.posY);
+            ctx.rotate(-b.angle*Math.PI/180);
+            this.bullet(ctx);
+            ctx.restore();
+        }
+        //this.drawShips(ctx, this.props.data.players);
         setTimeout(this.draw, 100);
     }
 
-    drawShips = (ctx, players) => {
-        for(var player in players) {
-            var p = players[player];
-            ctx.beginPath();
-            // Nom
-            ctx.fillStyle = "black";
-            ctx.font = "14px Arial";
-            ctx.fillText(p.name, p.posX-15, -p.posY-13)
-            // Cercle
-            ctx.lineWidth="2";
-            ctx.arc(p.posX,-p.posY, 10, 0, 2* Math.PI);
-            ctx.stroke();
-        }
+    ships = (ctx, fillStyle) => {
+        ctx.fillStyle = fillStyle;
+        ctx.globalAplha = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(25,25);
+        ctx.lineTo(-25,-25);
+        ctx.lineTo(25,-25);
+        ctx.lineTo(-25,25);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    bullet = (ctx) => {
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.globalAlpha = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(10,5);
+        ctx.lineTo(-10,5);
+        ctx.lineTo(-10,-5);
+        ctx.lineTo(10,-5);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    moveBullet = () => {
+        fetch('/mvB', {
+            method: 'POST',
+            header: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: '{}'
+        });
     }
 
     render() {
@@ -81,8 +119,7 @@ class Joystick extends React.Component {
         this.joystickData = '';
     }
 
-    send() {
-        console.log(this.props.name);
+    move() {
         if(this.joystickData) {
             var x = 0;
             var y = 0;
@@ -98,7 +135,7 @@ class Joystick extends React.Component {
                 }
                 console.log(x + ' ............... ' + y);
                 console.log(this.joystickData.angle.radian + ' / ' + this.joystickData.angle.degree + ' : ' + this.joystickData.distance);
-                fetch('/mvP/' + this.props.name + '/' + x + '/' + y, {
+                fetch('/mvP/' + this.props.name + '/' + Math.cos(this.joystickData.angle.radian) + '/' + Math.sin(this.joystickData.angle.radian) + '/' + this.joystickData.angle.degree, {
                     method: 'POST',
                     header: {
                         'Accept': 'application/json',
@@ -108,6 +145,27 @@ class Joystick extends React.Component {
                 });
             }
         }
+    }
+
+    shoot() {
+        var indexP;
+        for(var player in this.props.data.players) {
+            if(this.props.data.players[player].name == this.props.name) {
+                indexP = player;
+            }
+        }
+        var p = this.props.data.players[indexP];
+        var x = p.posX;
+        var y = p.posY;
+        var a = p.angle;
+        fetch('/addB/' + x + '/' + y + '/' + a, {
+            method: 'POST',
+            header: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: '{}'
+        });
     }
 
     componentDidMount() {
@@ -120,7 +178,7 @@ class Joystick extends React.Component {
         };
         var manager = njs.create(joystickParams);
         manager.on('added', function(evt, nipple) {
-            that.interval = setInterval(() => that.send(), 1000/60);
+            that.interval = setInterval(() => that.move(), 1000/60);
             nipple.on('move', function(evt, data) {
                 that.joystickData = data;
             });
@@ -137,7 +195,7 @@ class Joystick extends React.Component {
         };
         const manager2 = njs.create(tirParams);
         manager2.on('added', function(evt, nipple) {
-            console.log("tir");
+            that.shoot();
         });
     }
 

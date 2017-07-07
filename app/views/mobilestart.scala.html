@@ -6,21 +6,27 @@
   <div style="text-align:center;padding-bottom:10px;">
     <label for="name">Choisis un nom :</label>
     <input type="text" id="name" />
+    <label for="color">Choisis une couleur :</label>
+    <input type="color" value="#cccccc" id="color" name="textcolor" />
     <button type="button" id="add">Let's go !</button>
   </div>
   <script>
       document.getElementById('add').addEventListener('click', function(e) {
           var name = document.getElementById('name').value;
-          fetch('/addP/'+name, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: '{}'
-          }).then(function(r) {
-            document.location.href = "/control/"+name;
-          });
+          var color = document.getElementById('color').value;
+          if(name.length < 12 && name.length > 2 && name[0] != "?" && name != " ") {
+              console.log(color);
+              fetch('/addP/'+name + '/' + color.slice(1), {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: '{}'
+            }).then(function(r) {
+              document.location.href = "/control/"+name;
+            });
+          }
       });
   </script>
 }

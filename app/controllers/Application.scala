@@ -23,8 +23,8 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     Ok(views.html.mobilestart())
   }
 
-  def addNewPlayer(username: String) = Action.async {
-    game.push(AddPlayer(Player(username, 1, 1))).flatMap { _ =>
+  def addNewPlayer(username: String, color: String) = Action.async {
+    game.push(AddPlayer(Player(username, Vector(1,1), 0, 0, "#"+color))).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
     }
   }
@@ -42,8 +42,20 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
-  def movePlayer(username: String, x: String, y: String) = Action.async {
-    game.push(MovePlayer(username, x.toInt, y.toInt)).flatMap { _ =>
+  def addBullet(x: String, y: String, angle: String) = Action.async {
+    game.push(AddBullet(Bullet(Vector(x.toFloat,y.toFloat),angle.toFloat))).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
+  def moveBullet() = Action.async {
+    game.push(MoveBullet()).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
+  def movePlayer(username: String, x: String, y: String, a: String) = Action.async {
+    game.push(MovePlayer(username, Vector(x.toFloat, y.toFloat),a.toFloat)).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
     }
   }

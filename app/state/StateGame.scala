@@ -7,6 +7,8 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import models.Player
+import models.Vector
+import models.Bullet
 import play.api.Logger
 import play.api.libs.json.{JsArray, JsValue, Json}
 
@@ -18,15 +20,18 @@ sealed trait Action
 case class AddPlayer(player: Player) extends Action
 case class DropPlayer(username: String) extends Action
 case class AddPoint(username: String, point: Int) extends Action
-case class MovePlayer(username: String, x: Int, y: Int) extends Action
+case class AddBullet(bullet: Bullet) extends Action
+case class MoveBullet() extends Action
+case class MovePlayer(username: String, pos: Vector, angle: Float) extends Action
 case class ClearGame() extends Action
 case object TickEvent extends Action
 
 // Class State
 sealed trait State
-case class GameState(players: Seq[Player] = Seq.empty[Player], leaderboard: Map[String, Int] = Map.empty[String, Int]) extends State {
+case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet], leaderboard: Map[String, Int] = Map.empty[String, Int]) extends State {
   def toJson: JsValue = Json.obj(
     "players" -> JsArray(players.map(_.toJson)),
+    "bullets" -> JsArray(bullets.map(_.toJson)),
     "leaderboard" -> leaderboard
   )
 }
@@ -43,32 +48,30 @@ class StateGame() {
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
     case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
-    case AddPoint(u, p) => game.leaderboard.get(u) match {
-      case Some(score) => {
-        val newLeaderBoard = game.leaderboard + (u -> (score + p))
-        game.copy(leaderboard = newLeaderBoard)
-      }
-      case None => game
-    }
-    case MovePlayer(u,x,y) => {
-      
-      /*
-      * METTRE A JOUR LE PLAYER PLUTOT QUE DELETE ET RECREATE
-      * */
+    case AddPoint(u, p) =>
       game.players
-        .filter(_.name == u)
-        .headOption
-        .map(player =>
-          game.copy(players = game.players.filter(_.name != u) :+
-            new Player(player.name,player.posX+x,player.posY+y))
-        )
+          .filter(_.name == u)
+          .headOption
+          .map(player =>
+            game.copy(players = game.players.filter(_.name != u) :+
+                new Player(player.name, player.pos,player.angle,player.score+p,player.color))
+          ).getOrElse(game);
+    case AddBullet(b) => game.copy(bullets = game.bullets :+ b)
+    case MoveBullet() =>
+      var bullets: Seq[Bullet] = Seq.empty[Bullet]
+      for(b <- game.bullets) {
+        bullets = bullets :+ new Bullet(new Vector((b.pos.x.toDouble+Math.cos((b.angle.toDouble*Math.PI/180).toDouble)).toFloat,(b.pos.y.toDouble+Math.sin((b.angle.toDouble*Math.PI/180).toDouble)).toFloat), b.angle)
+      }
+      game.copy(bullets = bullets)
+    case MovePlayer(u,p,a) => {
+      game.players
+          .filter(_.name == u)
+          .headOption
+          .map(player =>
+            game.copy(players = game.players.filter(_.name != u) :+
+                new Player(player.name,new Vector(player.pos.x+p.x,player.pos.y+p.y),a,player.score,player.color))
+          )
         .getOrElse(game);
-/*      if(!game.players.filter(_.name == u).isEmpty) {
-        game.copy(players = game.players.filter(_.name != u) :+
-          new Player(player.apply(0).name,player.apply(0).posX+x,player.apply(0).posY+y))
-      } else {
-        game
-      }*/
     }
     case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
     case _ => game

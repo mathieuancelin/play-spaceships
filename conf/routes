@@ -4,10 +4,12 @@
 GET     /                           controllers.Application.board
 GET     /m                          controllers.Application.mobileStart
 GET     /control/:username          controllers.Application.controller(username)
-POST    /addP/:username             controllers.Application.addNewPlayer(username)
+POST    /addP/:username/:color      controllers.Application.addNewPlayer(username, color)
 POST    /dropP/:username            controllers.Application.dropPlayer(username)
 POST    /addPnt/:username/:point    controllers.Application.addPoint(username, point)
-POST    /mvP/:username/:x/:y        controllers.Application.movePlayer(username, x, y)
+POST    /addB/:x/:y/:a              controllers.Application.addBullet(x,y,a)
+POST    /mvB                       controllers.Application.moveBullet()
+POST    /mvP/:username/:x/:y/:a     controllers.Application.movePlayer(username, x, y, a)
 POST    /clear                      controllers.Application.clearGame()
 GET     /source                     controllers.Application.source()
 
