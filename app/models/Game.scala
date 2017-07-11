@@ -8,13 +8,17 @@ case class Vector(
 )
 
 case class Bullet(
+  id: Int,
   pos: Vector,
-  angle: Float
+  angle: Float,
+  nameShip: String
 ) {
   def toJson: JsValue = Json.obj(
+    "id" -> id,
     "posX" -> pos.x,
     "posY" -> pos.y,
-    "angle" -> angle
+    "angle" -> angle,
+    "nameShip" -> nameShip
   )
 }
 

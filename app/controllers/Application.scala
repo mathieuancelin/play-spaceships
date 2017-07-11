@@ -14,6 +14,7 @@ import scala.concurrent.ExecutionContext
 class Application @Inject()()(implicit ec: ExecutionContext) extends Controller {
 
   val game = new StateGame()
+  var index = 0;
 
   def board = Action { implicit request =>
     Ok(views.html.board(Seq.empty[Player]))
@@ -42,14 +43,21 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
-  def addBullet(x: String, y: String, angle: String) = Action.async {
-    game.push(AddBullet(Bullet(Vector(x.toFloat,y.toFloat),angle.toFloat))).flatMap { _ =>
+  def addBullet(x: String, y: String, angle: String, nameShip: String) = Action.async {
+    game.push(AddBullet(Bullet(index,Vector(x.toFloat,y.toFloat),angle.toFloat,nameShip))).flatMap { _ =>
+      index = index + 1;
       game.state.map(s => Ok(s.toJson))
     }
   }
 
   def moveBullet() = Action.async {
     game.push(MoveBullet()).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
+  def dropBullet(id: String) = Action.async {
+    game.push(DropBullet(id.toInt)).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
     }
   }

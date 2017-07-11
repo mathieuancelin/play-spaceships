@@ -22,10 +22,24 @@
   <input type="text" id="nameL" />
   <input type="text" id="point" />
   <button type="button" id="addpoint">ADD POINT</button>
+  <input type="text" id="idB" />
+  <button type="button" id="ident">DELETE BULLET</button>
   <script>
       document.getElementById('delete').addEventListener('click', function(e) {
           var name = document.getElementById('name').value;
           fetch('/dropP/'+name, {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
+
+      document.getElementById('ident').addEventListener('click', function(e) {
+          var id = document.getElementById('idB').value;
+          fetch('/dropB/'+id, {
               method: 'POST',
               headers: {
                   'Accept': 'application/json',

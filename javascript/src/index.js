@@ -26,6 +26,8 @@ class App extends React.Component {
 
     draw = () => {
         const ctx = this.canvasRef.getContext("2d");
+        this.collisionBullet();
+        this.collisionBulletShip();
         this.moveBullet();
         ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
         for(var player in this.props.data.players) {
@@ -44,7 +46,6 @@ class App extends React.Component {
             this.bullet(ctx);
             ctx.restore();
         }
-        //this.drawShips(ctx, this.props.data.players);
         setTimeout(this.draw, 100);
     }
 
@@ -65,12 +66,69 @@ class App extends React.Component {
         ctx.fillStyle = "black";
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.moveTo(10,5);
-        ctx.lineTo(-10,5);
-        ctx.lineTo(-10,-5);
-        ctx.lineTo(10,-5);
+        ctx.moveTo(5,5);
+        ctx.lineTo(-5,5);
+        ctx.lineTo(-5,-5);
+        ctx.lineTo(5,-5);
         ctx.closePath();
         ctx.fill();
+    }
+
+    collisionBulletShip() {
+        for(var bullet in this.props.data.bullets) {
+            var b = this.props.data.bullets[bullet];
+            var bul = {x: b.posX-5, y: b.posY+5, width: 10, height: 10};
+            for(var player in this.props.data.players) {
+                var p = this.props.data.players[player];
+                var pla = {x: p.posX-25, y: p.posY-25, width: 50, height:50}
+                if(bul.x < pla.x + pla.width &&
+                    bul.x + bul.width > pla.x &&
+                    bul.y < pla.y + pla.height &&
+                    bul.height + bul.y > pla.y &&
+                    b.nameShip != p.name) {
+                    fetch('/dropP/'+p.name, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    });
+                    fetch('/dropB/'+b.id, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    });
+                    fetch('/addPnt/'+b.nameShip+'/1', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    });
+                }
+            }
+        }
+    }
+
+    collisionBullet() {
+        for(var bullet in this.props.data.bullets) {
+            var b = this.props.data.bullets[bullet];
+            if(b.posX > 800 || b.posX < 0 || b.posY < -600 || b.posY > 0) {
+                fetch('/dropB/'+b.id, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: '{}'
+                });
+            }
+        }
     }
 
     moveBullet = () => {
@@ -88,15 +146,15 @@ class App extends React.Component {
         var dataJ = JSON.stringify(this.props.data);
         var rows = [];
         // Opti possible ???
-        for(var score in this.props.data.leaderboard) {
-            rows.push(score+": "+this.props.data.leaderboard[score]);
+        for(var player in this.props.data.players) {
+            rows.push(this.props.data.players[player].name+": "+this.props.data.players[player].score);
         }
 
         return (
             <div>
               <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
-              {dataJ}
               <Leaderboard rows={rows}/>
+              {dataJ}
             </div>
         );
     }
@@ -121,20 +179,8 @@ class Joystick extends React.Component {
 
     move() {
         if(this.joystickData) {
-            var x = 0;
-            var y = 0;
             if(this.joystickData.distance > 10) {
-                if (this.joystickData.angle.degree < 45 || this.joystickData.angle.degree > 315) {
-                    x = 1;
-                } else if (this.joystickData.angle.degree < 135) {
-                    y = 1;
-                } else if (this.joystickData.angle.degree < 225) {
-                    x = -1;
-                } else {
-                    y = -1;
-                }
-                console.log(x + ' ............... ' + y);
-                console.log(this.joystickData.angle.radian + ' / ' + this.joystickData.angle.degree + ' : ' + this.joystickData.distance);
+                console.log(this.joystickData.angle.radian);
                 fetch('/mvP/' + this.props.name + '/' + Math.cos(this.joystickData.angle.radian) + '/' + Math.sin(this.joystickData.angle.radian) + '/' + this.joystickData.angle.degree, {
                     method: 'POST',
                     header: {
@@ -155,10 +201,7 @@ class Joystick extends React.Component {
             }
         }
         var p = this.props.data.players[indexP];
-        var x = p.posX;
-        var y = p.posY;
-        var a = p.angle;
-        fetch('/addB/' + x + '/' + y + '/' + a, {
+        fetch('/addB/' + p.posX + '/' + p.posY + '/' + p.angle + '/' + this.props.name, {
             method: 'POST',
             header: {
                 'Accept': 'application/json',
@@ -200,13 +243,23 @@ class Joystick extends React.Component {
     }
 
     render() {
-
-        return (
-        <div>
-            <div className="col-xs-6" style={stylesJoystick} id="joystick"></div>
-            <div className="col-xs-6" style={stylesTir} id="tir"></div>
-        </div>
-        );
+        var pName=false;
+        for(var player in this.props.data.players) {
+            if(this.props.data.players[player].name == this.props.name) {
+                pName = true;
+            }
+        }
+        console.log(pName);
+        if(pName) {
+            return (
+                <div>
+                    <div className="col-xs-6" style={stylesJoystick} id="joystick"></div>
+                    <div className="col-xs-6" style={stylesTir} id="tir"></div>
+                </div>
+            );
+        } else {
+            document.location.href = "/m";
+        }
     }
 }
 

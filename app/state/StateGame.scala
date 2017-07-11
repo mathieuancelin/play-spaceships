@@ -22,6 +22,7 @@ case class DropPlayer(username: String) extends Action
 case class AddPoint(username: String, point: Int) extends Action
 case class AddBullet(bullet: Bullet) extends Action
 case class MoveBullet() extends Action
+case class DropBullet(id: Int) extends Action
 case class MovePlayer(username: String, pos: Vector, angle: Float) extends Action
 case class ClearGame() extends Action
 case object TickEvent extends Action
@@ -31,8 +32,7 @@ sealed trait State
 case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet], leaderboard: Map[String, Int] = Map.empty[String, Int]) extends State {
   def toJson: JsValue = Json.obj(
     "players" -> JsArray(players.map(_.toJson)),
-    "bullets" -> JsArray(bullets.map(_.toJson)),
-    "leaderboard" -> leaderboard
+    "bullets" -> JsArray(bullets.map(_.toJson))
   )
 }
 
@@ -44,6 +44,7 @@ class StateGame() {
 
   private val initialState = GameState()
   private val ref = new AtomicReference[GameState](initialState)
+  private var indexBullet = 0;
 
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
     case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
@@ -60,9 +61,10 @@ class StateGame() {
     case MoveBullet() =>
       var bullets: Seq[Bullet] = Seq.empty[Bullet]
       for(b <- game.bullets) {
-        bullets = bullets :+ new Bullet(new Vector((b.pos.x.toDouble+Math.cos((b.angle.toDouble*Math.PI/180).toDouble)).toFloat,(b.pos.y.toDouble+Math.sin((b.angle.toDouble*Math.PI/180).toDouble)).toFloat), b.angle)
+        bullets = bullets :+ new Bullet(b.id,new Vector((b.pos.x.toDouble+5*Math.cos((b.angle.toDouble*Math.PI/180).toDouble)).toFloat,(b.pos.y.toDouble+5*Math.sin((b.angle.toDouble*Math.PI/180).toDouble)).toFloat), b.angle, b.nameShip)
       }
       game.copy(bullets = bullets)
+    case DropBullet(id) => game.copy(bullets = game.bullets.filter(_.id != id))
     case MovePlayer(u,p,a) => {
       game.players
           .filter(_.name == u)
