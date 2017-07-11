@@ -25,7 +25,8 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
   }
 
   def addNewPlayer(username: String, color: String) = Action.async {
-    game.push(AddPlayer(Player(username, Vector(1,1), 0, 0, "#"+color))).flatMap { _ =>
+    var rnd = new scala.util.Random
+    game.push(AddPlayer(Player(username, Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))), 0, 0, "#"+color,3))).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
     }
   }
@@ -37,8 +38,13 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
   }
 
   def addPoint(username: String, point: String) = Action.async {
-    println(point.toInt)
     game.push(AddPoint(username, point.toInt)).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
+  def lostLife(username: String, point: String) = Action.async {
+    game.push(LostLife(username, point.toInt)).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
     }
   }

@@ -20,6 +20,7 @@ sealed trait Action
 case class AddPlayer(player: Player) extends Action
 case class DropPlayer(username: String) extends Action
 case class AddPoint(username: String, point: Int) extends Action
+case class LostLife(username: String, point: Int) extends Action
 case class AddBullet(bullet: Bullet) extends Action
 case class MoveBullet() extends Action
 case class DropBullet(id: Int) extends Action
@@ -47,15 +48,23 @@ class StateGame() {
   private var indexBullet = 0;
 
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
-    case AddPlayer(p) => game.copy(players = game.players :+ p, leaderboard = game.leaderboard + (p.name -> 0) )
-    case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u), leaderboard = game.leaderboard - u)
+    case AddPlayer(p) => game.copy(players = game.players :+ p)
+    case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u))
     case AddPoint(u, p) =>
       game.players
           .filter(_.name == u)
           .headOption
           .map(player =>
             game.copy(players = game.players.filter(_.name != u) :+
-                new Player(player.name, player.pos,player.angle,player.score+p,player.color))
+                new Player(player.name, player.pos,player.angle,player.score+p,player.color, player.life))
+          ).getOrElse(game);
+    case LostLife(u,p) =>
+        game.players
+          .filter(_.name == u)
+          .headOption
+          .map(player =>
+            game.copy(players = game.players.filter(_.name != u) :+
+              new Player(player.name, player.pos,player.angle,player.score,player.color, player.life-p))
           ).getOrElse(game);
     case AddBullet(b) => game.copy(bullets = game.bullets :+ b)
     case MoveBullet() =>
@@ -71,7 +80,7 @@ class StateGame() {
           .headOption
           .map(player =>
             game.copy(players = game.players.filter(_.name != u) :+
-                new Player(player.name,new Vector(player.pos.x+p.x,player.pos.y+p.y),a,player.score,player.color))
+                new Player(player.name,new Vector(player.pos.x+p.x,player.pos.y+p.y),a,player.score,player.color,player.life))
           )
         .getOrElse(game);
     }

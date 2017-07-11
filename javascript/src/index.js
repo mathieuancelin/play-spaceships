@@ -6,6 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import 'react-select/dist/react-select.css';
 import njs from 'nipplejs';
+import 'react-router';
 
 if (!window.Symbol) {
   window.Symbol = Symbol;
@@ -35,7 +36,7 @@ class App extends React.Component {
             ctx.save();
             ctx.translate(p.posX,-p.posY);
             ctx.rotate(-p.angle*Math.PI/180);
-            this.ships(ctx,p.color);
+            this.ships(ctx,p.color,p.life);
             ctx.restore();
         }
         for(var bullet in this.props.data.bullets) {
@@ -49,7 +50,7 @@ class App extends React.Component {
         setTimeout(this.draw, 100);
     }
 
-    ships = (ctx, fillStyle) => {
+    ships = (ctx,fillStyle,life) => {
         ctx.fillStyle = fillStyle;
         ctx.globalAplha = 1.0;
         ctx.beginPath();
@@ -59,6 +60,9 @@ class App extends React.Component {
         ctx.lineTo(-25,25);
         ctx.closePath();
         ctx.fill();
+        for(var i=0;i<life;i++) {
+            ctx.fillRect(-25+16*i,40,16,5);
+        }
     }
 
     bullet = (ctx) => {
@@ -86,14 +90,6 @@ class App extends React.Component {
                     bul.y < pla.y + pla.height &&
                     bul.height + bul.y > pla.y &&
                     b.nameShip != p.name) {
-                    fetch('/dropP/'+p.name, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    });
                     fetch('/dropB/'+b.id, {
                         method: 'POST',
                         headers: {
@@ -102,6 +98,25 @@ class App extends React.Component {
                         },
                         body: '{}'
                     });
+                    if(p.life > 1) {
+                        fetch('/lostL/'+p.name+'/1', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: '{}'
+                        });
+                    } else {
+                        fetch('/dropP/'+p.name, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: '{}'
+                        });
+                    }
                     fetch('/addPnt/'+b.nameShip+'/1', {
                         method: 'POST',
                         headers: {
@@ -180,7 +195,6 @@ class Joystick extends React.Component {
     move() {
         if(this.joystickData) {
             if(this.joystickData.distance > 10) {
-                console.log(this.joystickData.angle.radian);
                 fetch('/mvP/' + this.props.name + '/' + Math.cos(this.joystickData.angle.radian) + '/' + Math.sin(this.joystickData.angle.radian) + '/' + this.joystickData.angle.degree, {
                     method: 'POST',
                     header: {
@@ -249,7 +263,6 @@ class Joystick extends React.Component {
                 pName = true;
             }
         }
-        console.log(pName);
         if(pName) {
             return (
                 <div>
@@ -259,6 +272,7 @@ class Joystick extends React.Component {
             );
         } else {
             document.location.href = "/m";
+            return false;
         }
     }
 }

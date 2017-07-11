@@ -27,7 +27,8 @@ case class Player(
   pos: Vector,
   angle: Float,
   score: Int,
-  color: String
+  color: String,
+  life: Int
 ) {
   def toJson: JsValue = Json.obj(
     "name" -> name,
@@ -35,6 +36,7 @@ case class Player(
     "posY" -> pos.y,
     "angle" -> angle,
     "score" -> score,
-    "color" -> color
+    "color" -> color,
+    "life" -> life
   )
 }
