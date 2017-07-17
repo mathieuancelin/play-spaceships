@@ -15,13 +15,13 @@ window.$ = $;
 window.jQuery = $;
 require('bootstrap/dist/js/bootstrap.min');
 
-class App extends React.Component {
+class Board extends React.Component {
 
     constructor(props) {
       super(props);
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.draw();
     }
 
@@ -98,16 +98,15 @@ class App extends React.Component {
                         },
                         body: '{}'
                     });
-                    if(p.life > 1) {
-                        fetch('/lostL/'+p.name+'/1', {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: '{}'
-                        });
-                    } else {
+                    fetch('/lostL/'+p.name+'/1', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    });
+                    if(p.life <= 1) {
                         fetch('/dropP/'+p.name, {
                             method: 'POST',
                             headers: {
@@ -169,7 +168,6 @@ class App extends React.Component {
             <div>
               <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
               <Leaderboard rows={rows}/>
-              {dataJ}
             </div>
         );
     }
@@ -190,6 +188,7 @@ class Joystick extends React.Component {
     constructor(props) {
         super(props);
         this.joystickData = '';
+        this.color = '000000';
     }
 
     move() {
@@ -223,6 +222,14 @@ class Joystick extends React.Component {
             },
             body: '{}'
         });
+    }
+
+    componentWillMount() {
+        for(var player in this.props.data.players) {
+            if(this.props.data.players[player].name == this.props.name) {
+                this.color = this.props.data.players[player].color;
+            }
+        }
     }
 
     componentDidMount() {
@@ -259,7 +266,8 @@ class Joystick extends React.Component {
     render() {
         var pName=false;
         for(var player in this.props.data.players) {
-            if(this.props.data.players[player].name == this.props.name) {
+            var p = this.props.data.players[player];
+            if(p.name == this.props.name) {
                 pName = true;
             }
         }
@@ -271,7 +279,7 @@ class Joystick extends React.Component {
                 </div>
             );
         } else {
-            document.location.href = "/m";
+            document.location.href = "/res/"+ this.props.name +'/'+ this.color.slice(1);
             return false;
         }
     }
@@ -294,7 +302,7 @@ class Leaderboard extends React.Component {
 }
 
 export function init(node, data) {
-  ReactDOM.render(<App data={data} />, node);
+  ReactDOM.render(<Board data={data} />, node);
 }
 
 export function joystick(node, data, name) {

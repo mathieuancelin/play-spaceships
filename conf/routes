@@ -4,6 +4,7 @@
 GET     /                           controllers.Application.board
 GET     /m                          controllers.Application.mobileStart
 GET     /control/:username          controllers.Application.controller(username)
+GET     /res/:username/:color       controllers.Application.resultat(username,color)
 POST    /addP/:username/:color      controllers.Application.addNewPlayer(username, color)
 POST    /dropP/:username            controllers.Application.dropPlayer(username)
 POST    /addPnt/:username/:point    controllers.Application.addPoint(username, point)

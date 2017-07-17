@@ -1,19 +1,18 @@
 @(username:String)
-
 @import models._
-
 
 @main("SpaceShip - Controller") {
   <h4 id="name" style="text-align:center;">@username</h4>
   <div id="gamepad"></div>
-  <div id="gamepad2"></div>
   <div>&nbsp;</div>
+
   <script>
-    var name = document.getElementById("name").innerHTML; // get value of username ??
+    var ship = {};
+    ship["name"] = "@username";
     var source = new EventSource('/source');
     source.onmessage = function(e) {
       var data = e.data;
-      Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), name);
+      Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship.name);
     };
   </script>
 }

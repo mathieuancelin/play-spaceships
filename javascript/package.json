@@ -7,7 +7,7 @@
   "scripts": {
     "bundle": "NODE_ENV=production webpack --colors --progress",
     "build": "rm -f ../public/javascripts/bundle/* && npm run bundle",
-    "start": "NODE_ENV=dev webpack-dev-server -d --colors --inline --port 3000"
+    "start": "NODE_ENV=dev webpack-dev-server -d --colors --inline --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "bootstrap": "3.3.7",

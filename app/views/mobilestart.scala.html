@@ -9,23 +9,28 @@
     <label for="color">Choisis une couleur :</label>
     <input type="color" value="#cccccc" id="color" name="textcolor" />
     <button type="button" id="add">Let's go !</button>
+    <br />
+    <div style="color:red" id="error"></div>
   </div>
+
   <script>
       document.getElementById('add').addEventListener('click', function(e) {
           var name = document.getElementById('name').value;
           var color = document.getElementById('color').value;
           if(name.length < 12 && name.length > 2 && name[0] != "?" && name != " ") {
-              console.log(color);
-              fetch('/addP/'+name + '/' + color.slice(1), {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-              },
-              body: '{}'
+            console.log(color);
+            fetch('/addP/'+name + '/' + color.slice(1), {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: '{}'
             }).then(function(r) {
               document.location.href = "/control/"+name;
             });
+          } else {
+              document.getElementById('error').innerHTML="Le nom du vaisseau doit contenir 3 à 12 caractère et aucun caractère spécial.";
           }
       });
   </script>

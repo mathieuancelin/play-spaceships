@@ -17,7 +17,7 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
   var index = 0;
 
   def board = Action { implicit request =>
-    Ok(views.html.board(Seq.empty[Player]))
+    Ok(views.html.board())
   }
 
   def mobileStart = Action { implicit request =>
@@ -82,6 +82,10 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
 
   def controller(username: String) = Action { implicit request =>
     Ok(views.html.control(username))
+  }
+
+  def resultat(username: String, color: String) = Action { implicit request =>
+    Ok(views.html.resultat(username,color))
   }
 
   def source = Action {

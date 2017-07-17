@@ -1,32 +1,48 @@
-@(players: Seq[Player])
+@()
 @import models._
 
-@moreScripts = {
-    <script>
-    </script>
-}
-
-@main("SpaceShip - Board", moreScripts = moreScripts) {
+@main("SpaceShip - Board") {
   <div id="app"></div>
-  <div id="timer"></div>
-  <div id="data"></div>
 
-  <div id="players">
-    @for(player <- players) {
-      @player.name
-    }
+  <button id="hidden">+</button>
+  <div id="log" style="display:none">
+    <div id="data"></div>
+    <br />
+    <button type="button" id="clearAll">CLEAR ALL</button><br />
+    <input type="text" id="nameS" />
+    <button type="button" id="deleteP">DELETE</button><br />
+    <input type="text" id="idB" />
+    <button type="button" id="deleteB">DELETE BULLET</button><br />
+    <input type="text" id="nameSh" />
+    <input type="text" id="point" />
+    <button type="button" id="addP">ADD POINT</button>
   </div>
-  <input type="text" id="name" />
-  <button type="button" id="delete">DELETE</button>
-  <button type="button" id="clear">CLEAR ALL</button>
-  <input type="text" id="nameL" />
-  <input type="text" id="point" />
-  <button type="button" id="addpoint">ADD POINT</button>
-  <input type="text" id="idB" />
-  <button type="button" id="ident">DELETE BULLET</button>
+
   <script>
-      document.getElementById('delete').addEventListener('click', function(e) {
-          var name = document.getElementById('name').value;
+      document.getElementById('hidden').addEventListener('click', function(e) {
+          var log = document.getElementById('log');
+          if(log.style.display == 'none') {
+              log.style.display = 'block';
+              document.getElementById('hidden').innerHTML = '-';
+          } else {
+              log.style.display = 'none';
+              document.getElementById('hidden').innerHTML = '+';
+          }
+      });
+
+      document.getElementById('clearAll').addEventListener('click', function(e) {
+          fetch('/clear', {
+              method: 'POST',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
+
+      document.getElementById('deleteP').addEventListener('click', function(e) {
+          var name = document.getElementById('nameS').value;
           fetch('/dropP/'+name, {
               method: 'POST',
               headers: {
@@ -37,7 +53,7 @@
           });
       });
 
-      document.getElementById('ident').addEventListener('click', function(e) {
+      document.getElementById('deleteB').addEventListener('click', function(e) {
           var id = document.getElementById('idB').value;
           fetch('/dropB/'+id, {
               method: 'POST',
@@ -49,19 +65,8 @@
           });
       });
 
-      document.getElementById('clear').addEventListener('click', function(e) {
-          fetch('/clear', {
-              method: 'POST',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      document.getElementById('addpoint').addEventListener('click', function(e) {
-          var name = document.getElementById('nameL').value;
+      document.getElementById('addP').addEventListener('click', function(e) {
+          var name = document.getElementById('nameSh').value;
           var point = document.getElementById('point').value;
           fetch('/addPnt/'+name+'/'+point, {
               method: 'POST',
@@ -73,13 +78,13 @@
           });
       });
 
+
       var source = new EventSource('/source');
       source.onmessage = function(e) {
            var data = e.data;
            console.log(data);
-           document.getElementById('data').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+           document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
            Spaceships.init(document.getElementById('app'), JSON.parse(data));
       };
-
   </script>
 }

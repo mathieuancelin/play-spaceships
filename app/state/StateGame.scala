@@ -30,7 +30,7 @@ case object TickEvent extends Action
 
 // Class State
 sealed trait State
-case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet], leaderboard: Map[String, Int] = Map.empty[String, Int]) extends State {
+case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet]) extends State {
   def toJson: JsValue = Json.obj(
     "players" -> JsArray(players.map(_.toJson)),
     "bullets" -> JsArray(bullets.map(_.toJson))
@@ -84,12 +84,12 @@ class StateGame() {
           )
         .getOrElse(game);
     }
-    case ClearGame() => game.copy(players = Seq.empty[Player], leaderboard = Map.empty[String, Int])
+    case ClearGame() => game.copy(players = Seq.empty[Player], bullets = Seq.empty[Bullet])
     case _ => game
   }
 
   val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
-  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 1.second, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
+  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 50.millis, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
     val newState = reducer(prevState, action)
     ref.set(newState)
     //Logger.info(s"action: $action => next state: $newState")
