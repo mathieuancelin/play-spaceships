@@ -14,44 +14,140 @@ if (!window.Symbol) {
 window.$ = $;
 window.jQuery = $;
 require('bootstrap/dist/js/bootstrap.min');
-
-class Board extends React.Component {
-
-    constructor(props) {
-      super(props);
+/*
+class Vector {
+    constructor(x,y) {
+        this.x = x;
+        this.y = y;
     }
 
-    componentDidMount() {
-        this.draw();
+    additionVV(vect) {
+        return new Vector(this.x + vect.x, this.y + vect.y);
     }
 
-    draw = () => {
-        const ctx = this.canvasRef.getContext("2d");
-        this.collisionBullet();
-        this.collisionBulletShip();
-        this.moveBullet();
-        ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
-        for(var player in this.props.data.players) {
-            var p = this.props.data.players[player];
-            ctx.save();
-            ctx.translate(p.posX,-p.posY);
-            ctx.rotate(-p.angle*Math.PI/180);
-            this.ships(ctx,p.color,p.life);
-            ctx.restore();
-        }
-        for(var bullet in this.props.data.bullets) {
-            var b = this.props.data.bullets[bullet];
-            ctx.save();
-            ctx.translate(b.posX, -b.posY);
-            ctx.rotate(-b.angle*Math.PI/180);
-            this.bullet(ctx);
-            ctx.restore();
-        }
-        setTimeout(this.draw, 100);
+    additionVS(scalar) {
+        return new Vector(this.x + scalar, this.y + scalar);
     }
 
-    ships = (ctx,fillStyle,life) => {
-        ctx.fillStyle = fillStyle;
+    multiplicationVS(scalar) {
+        return new Vector(this.x * scalar, this.y * scalar);
+    }
+
+    magnitude() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    normalized() {
+        return new Vector(this.x/this.magnitude(), this.y/this.magnitude());
+    }
+}
+
+class Physics {
+    constructor() {
+        this.prevDate = Date.now();
+        this.deltaTime = 0.0;
+        this.shipList = [];
+        this.bulletList = [];
+    }
+
+    simulate(state) {
+        let now = Date.now();
+        this.deltaTime = now - this.prevDate;
+        this.prevDate = now;
+        // loop --> objet.simuler(this.deltaTime);
+    }
+
+    draw(ctx) {
+        this.shipList.forEach(function(ship) {
+            ship.draw(ctx);
+        });
+        this.bulletList.forEach(function(bullet) {
+            bullet.draw(ctx);
+        });
+    }
+
+    addShip(pos,color) {
+        this.shipList.push(new Ship(pos,color));
+    }
+
+    getShip() {
+        return this.shipList;
+    }
+
+    deleteShip() {
+
+    }
+
+    addBullet(pos) {
+        this.bulletList.push(new Bullet(pos));
+    }
+
+    getBullet() {
+        return this.bulletList;
+    }
+
+    deleteBullet() {
+
+    }
+}
+
+class ObjectPhysics {
+    constructor(pos, vitesse) {
+        this.position = pos;
+        this.angle = 0;
+        this.vitesse = vitesse;
+        this.velocity = new Vector(0,0);
+        this.angularVelocity = 0;
+        this.drag = 0.1;
+        this.angularDrag = 0.1;
+    }
+
+    simulate(deltaTime) {
+        this.position += this.velocity.additionVS(deltaTime);
+        this.velocity += this.getDragForce(this.velocity,this.drag).multiplicationVS(deltaTime);
+        this.angle += this.angularVelocity * deltaTime;
+        this.angularVelocity += this.getAngularDragForce(this.angularVelocity,this.angularDrag) * deltaTime;
+    }
+
+    getDragForce(velocity, drag) {
+        let velMag = velocity.magnitude();
+        return -velocity.multiplicationVS(drag).multiplicationVS(velMag);
+    }
+
+    getAngularDragForce(angularVelocity, angularDrag) {
+        return -angularVelocity * Math.abs(angularVelocity) * angularDrag;
+    }
+
+    pushObject(value) {
+        this.velocity.additionVS(value);
+    }
+
+    turnAround(newAngle) {
+        this.angularVelocity + newAngle - this.angle;
+    }
+
+    move(angle) {
+        this.pushObject(new Vector(Math.cos(angle), Math.sin(angle)).multiplicationVS(this.vitesse));
+        this.turnAround(angle);
+    }
+
+    teleport(vector) {
+        this.position = vector;
+    }
+}
+
+class Ship extends ObjectPhysics {
+    constructor(pos,color) {
+        super(pos);
+        this.color = color;
+        this.life = 3;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.position.x,-this.position.y);
+        ctx.rotate(-this.angle);
+        ctx.fillStyle = this.color;
         ctx.globalAplha = 1.0;
         ctx.beginPath();
         ctx.moveTo(25,25);
@@ -60,13 +156,26 @@ class Board extends React.Component {
         ctx.lineTo(-25,25);
         ctx.closePath();
         ctx.fill();
-        for(var i=0;i<life;i++) {
+        for(var i=0;i<this.life;i++) {
             ctx.fillRect(-25+16*i,40,16,5);
         }
+        ctx.restore();
     }
 
-    bullet = (ctx) => {
-        ctx.beginPath();
+    dropLife() {
+        this.life -= 1;
+    }
+}
+
+class Bullet extends ObjectPhysics {
+    constructor(pos) {
+        super(pos);
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.position.x,-this.position.y);
+        ctx.rotate(-this.angle);
         ctx.fillStyle = "black";
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
@@ -74,6 +183,109 @@ class Board extends React.Component {
         ctx.lineTo(-5,5);
         ctx.lineTo(-5,-5);
         ctx.lineTo(5,-5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class BoardV2 extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {player: [new Ship(new Vector(200, -100),"blue")], bullet: {}};
+        this.physics = new Physics();
+    }
+
+    componentDidMount() {
+        var array = this.state.player;
+        array.push(new Ship(new Vector(100,-200),"blue"));
+        this.setState = ({player: array});
+        setInterval(this.display(this),1000);
+        this.physics.addShip(new Vector(100,-100),"blue");
+        this.physics.getShip()[0].teleport(new Vector(200,-200));
+        this.physicsInterval = setInterval(() => this.physics.simulate(this.state), 1000/60);
+        const ctx = this.canvasRef.getContext("2d");
+        this.drawInterval = setInterval(() => this.physics.draw(ctx), 1000/60);
+    }
+
+    display(lol) {
+        console.log(lol.state);
+    }
+
+    componentWillUnmount() {
+        window.clearInterval(this.physicsInterval);
+        window.clearInterval(this.drawInterval);
+    }
+
+    render() {
+        return (
+            <div>
+                <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
+            </div>
+        );
+    }
+}*/
+
+class Board extends React.Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    componentDidMount() {
+        this.draw();
+    }
+
+    draw = () => {
+        if(this.props.data) {
+            const ctx = this.canvasRef.getContext("2d");
+            this.collisionBullet();
+            this.collisionBulletShip();
+            this.moveBullet();
+            ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
+            for(var player in this.props.data.players) {
+                var p = this.props.data.players[player];
+                ctx.save();
+                ctx.translate(p.posX,-p.posY);
+                ctx.rotate(-p.angle*Math.PI/180);
+                this.ships(ctx,p.color,p.life);
+                ctx.restore();
+            }
+            for(var bullet in this.props.data.bullets) {
+                var b = this.props.data.bullets[bullet];
+                ctx.save();
+                ctx.translate(b.posX, -b.posY);
+                ctx.rotate(-b.angle*Math.PI/180);
+                this.bullet(ctx);
+                ctx.restore();
+            }
+        }
+        setTimeout(this.draw, 100);
+    }
+
+    // bouclier (cercle) de protection remplacer par la barre de vie (gestion collision a revoir) )=
+    ships = (ctx,fillStyle,life) => {
+        ctx.fillStyle = fillStyle;
+        ctx.globalAplha = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(20,0);
+        ctx.lineTo(-20,-18);
+        ctx.lineTo(-20,18);
+        ctx.closePath();
+        ctx.fill();
+        for(var i=0;i<life;i++) {
+            ctx.fillRect(-25+16*i,30,16,5);
+        }
+    }
+
+    bullet = (ctx) => {
+        ctx.fillStyle = "black";
+        ctx.globalAlpha = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(5,2);
+        ctx.lineTo(-5,2);
+        ctx.lineTo(-5,-2);
+        ctx.lineTo(5,-2);
         ctx.closePath();
         ctx.fill();
     }
@@ -84,7 +296,7 @@ class Board extends React.Component {
             var bul = {x: b.posX-5, y: b.posY+5, width: 10, height: 10};
             for(var player in this.props.data.players) {
                 var p = this.props.data.players[player];
-                var pla = {x: p.posX-25, y: p.posY-25, width: 50, height:50}
+                var pla = {x: p.posX-20, y: p.posY-20, width: 40, height: 40}
                 if(bul.x < pla.x + pla.width &&
                     bul.x + bul.width > pla.x &&
                     bul.y < pla.y + pla.height &&
@@ -157,13 +369,15 @@ class Board extends React.Component {
     }
 
     render() {
-        var dataJ = JSON.stringify(this.props.data);
         var rows = [];
-        // Opti possible ???
-        for(var player in this.props.data.players) {
-            rows.push(this.props.data.players[player].name+": "+this.props.data.players[player].score);
-        }
+        if(this.props.data) {
+            var dataJ = JSON.stringify(this.props.data);
 
+            // Opti possible ???
+            for(var player in this.props.data.players) {
+                rows.push(this.props.data.players[player].name+": "+this.props.data.players[player].score);
+            }
+        }
         return (
             <div>
               <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
@@ -302,6 +516,9 @@ class Leaderboard extends React.Component {
 }
 
 export function init(node, data) {
+    if(data == null) {
+        ReactDOM.render(<Board />,node);
+    }
   ReactDOM.render(<Board data={data} />, node);
 }
 

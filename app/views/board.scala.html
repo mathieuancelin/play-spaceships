@@ -1,7 +1,7 @@
-@()
+@(host: String)
 @import models._
 
-@main("SpaceShip - Board") {
+@main("SpaceShip - Board", host = host) {
   <div id="app"></div>
 
   <button id="hidden">+</button>
@@ -78,12 +78,22 @@
           });
       });
 
-
       var source = new EventSource('/source');
+      source.onopen = function() {
+          fetch('/getState', {
+              method: 'GET',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              }
+          }).then((resp) => resp.json())
+            .then(function(data) {
+               Spaceships.init(document.getElementById('app'),data);
+            });
+      }
       source.onmessage = function(e) {
-           var data = e.data;
-           console.log(data);
-           document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
+           data = e.data;
+           //document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
            Spaceships.init(document.getElementById('app'), JSON.parse(data));
       };
   </script>

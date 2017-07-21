@@ -1,8 +1,8 @@
-@(name: String, color: String)
+@(name: String, color: String, host: String)
 @import models._
 @import play.api.libs.json.Json
 
-@main("SpaceShip - Perdu !") {
+@main("SpaceShip - Perdu !", host = host) {
   <div style="text-align:center">
       <h4 id="name">Tu as perdu !</h4>
       <button onclick="replay()">Rejouer</button>

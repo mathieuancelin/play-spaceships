@@ -1,5 +1,6 @@
 package controllers
 
+import java.net.InetAddress
 import javax.inject._
 
 import akka.stream.Materializer
@@ -14,14 +15,16 @@ import scala.concurrent.ExecutionContext
 class Application @Inject()()(implicit ec: ExecutionContext) extends Controller {
 
   val game = new StateGame()
-  var index = 0;
+  var index = 0
+  val host = InetAddress.getLocalHost.getHostAddress
+
 
   def board = Action { implicit request =>
-    Ok(views.html.board())
+    Ok(views.html.board(request.host.split(":")(0)))
   }
 
   def mobileStart = Action { implicit request =>
-    Ok(views.html.mobilestart())
+    Ok(views.html.mobilestart(request.host.split(":")(0)))
   }
 
   def addNewPlayer(username: String, color: String) = Action.async {
@@ -80,12 +83,16 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
+  def getState() = Action.async {
+    game.state.map(s => Ok(s.toJson))
+  }
+
   def controller(username: String) = Action { implicit request =>
-    Ok(views.html.control(username))
+    Ok(views.html.control(username, request.host.split(":")(0)))
   }
 
   def resultat(username: String, color: String) = Action { implicit request =>
-    Ok(views.html.resultat(username,color))
+    Ok(views.html.resultat(username,color, request.host.split(":")(0)))
   }
 
   def source = Action {

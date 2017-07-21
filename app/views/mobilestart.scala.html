@@ -1,7 +1,8 @@
-@()
+@(host: String)
+
 @import models._
 
-@main("SpaceShip - Create Ship") {
+@main("SpaceShip - Create Ship", host = host) {
   <h3 style="text-align:center;">Créer un vaisseau</h3>
   <div style="text-align:center;padding-bottom:10px;">
     <label for="name">Choisis un nom :</label>

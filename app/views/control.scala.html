@@ -1,7 +1,7 @@
-@(username:String)
+@(username:String, host: String)
 @import models._
 
-@main("SpaceShip - Controller") {
+@main("SpaceShip - Controller", host = host) {
   <h4 id="name" style="text-align:center;">@username</h4>
   <div id="gamepad"></div>
   <div>&nbsp;</div>
@@ -10,6 +10,18 @@
     var ship = {};
     ship["name"] = "@username";
     var source = new EventSource('/source');
+    source.onopen = function() {
+        fetch('/getState', {
+              method: 'GET',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              }
+          }).then((resp) => resp.json())
+            .then(function(data) {
+                Spaceships.joystick(document.getElementById('gamepad'), data, ship.name);
+            });
+    }
     source.onmessage = function(e) {
       var data = e.data;
       Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship.name);

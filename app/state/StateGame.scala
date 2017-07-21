@@ -89,11 +89,28 @@ class StateGame() {
   }
 
   val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
-  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 50.millis, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
+  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 100.millis, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
     val newState = reducer(prevState, action)
     ref.set(newState)
     //Logger.info(s"action: $action => next state: $newState")
     newState
+  } statefulMapConcat { () =>
+
+    import scala.collection.immutable.{ Iterable => Imuterable }
+
+    var lastState: GameState = GameState()
+
+    def processNextState(next: GameState): Imuterable[GameState] = {
+      val nextGameState = if (next == lastState) {
+        Imuterable.empty[GameState]
+      } else {
+        Imuterable(next)
+      }
+      lastState = next
+      nextGameState
+    }
+
+    processNextState
   }
 
   val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] =
