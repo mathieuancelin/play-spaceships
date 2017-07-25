@@ -243,12 +243,25 @@ class Board extends React.Component {
             //ctx.canvas.height = window.innerHeight
             ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
             for(var player in this.props.data.players) {
-                var p = this.props.data.players[player];
+                var ship = this.props.data.players[player];
                 ctx.save();
-                ctx.translate(p.posX,-p.posY);
-                ctx.rotate(-p.angle*Math.PI/180);
-                this.ships(ctx,p.color,p.life);
+                ctx.translate(ship.posX,-ship.posY);
+                ctx.rotate(-ship.angle*Math.PI/180);
+                this.ships(ctx,ship.color,ship.life);
                 ctx.restore();
+
+                var score = this.props.data.players[player].score;
+                if(this.props.data.bestScore < score) {
+                    fetch('/modifS/' + this.props.data.players[player].name + '/' + score, {
+                        method: 'POST',
+                        header: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{}'
+                    });
+                }
+
             }
             for(var bullet in this.props.data.bullets) {
                 var b = this.props.data.bullets[bullet];
@@ -258,6 +271,9 @@ class Board extends React.Component {
                 this.bullet(ctx);
                 ctx.restore();
             }
+            ctx.font = "20px Arial";
+            var text = this.props.data.nameScore + " - " + this.props.data.bestScore
+            ctx.fillText(text,800-40*this.props.data.nameScore.length,30);
         }
         setTimeout(this.draw, 100);
     }

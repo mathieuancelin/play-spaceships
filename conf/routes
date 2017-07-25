@@ -12,6 +12,7 @@ POST    /lostL/:username/:point     controllers.Application.lostLife(username, p
 POST    /addB/:x/:y/:a/:name        controllers.Application.addBullet(x,y,a,name)
 POST    /dropB/:id                  controllers.Application.dropBullet(id)
 POST    /mvP/:username/:x/:y/:a     controllers.Application.movePlayer(username, x, y, a)
+POST    /modifS/:username/:point    controllers.Application.modifScore(username,point)
 POST    /clear                      controllers.Application.clearGame()
 GET     /source                     controllers.Application.source()
 GET     /getState                   controllers.Application.getState()

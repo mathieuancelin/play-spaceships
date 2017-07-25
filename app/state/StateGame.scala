@@ -24,15 +24,18 @@ case class LostLife(username: String, point: Int) extends Action
 case class AddBullet(bullet: Bullet) extends Action
 case class DropBullet(id: Int) extends Action
 case class MovePlayer(username: String, pos: Vector, angle: Float) extends Action
+case class ModifScore(username: String, point: Int) extends Action
 case class ClearGame() extends Action
 case object TickEvent extends Action
 
 // Class State
 sealed trait State
-case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet]) extends State {
+case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet], nameScore: String = "", bestScore: Int = 0) extends State {
   def toJson: JsValue = Json.obj(
     "players" -> JsArray(players.map(_.toJson)),
-    "bullets" -> JsArray(bullets.map(_.toJson))
+    "bullets" -> JsArray(bullets.map(_.toJson)),
+    "nameScore" -> nameScore,
+    "bestScore" -> bestScore
   )
 }
 
@@ -91,6 +94,7 @@ class StateGame() {
           })
         .getOrElse(game);
     }
+    case ModifScore(u,p) => game.copy(nameScore = u,bestScore = p)
     case ClearGame() => game.copy(players = Seq.empty[Player], bullets = Seq.empty[Bullet])
     case _ => game
   }

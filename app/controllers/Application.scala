@@ -71,6 +71,12 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
+  def modifScore(username: String, point: String) = Action.async {
+    game.push(ModifScore(username, point.toInt)).flatMap { _ =>
+      game.state.map(s => Ok(s.toJson))
+    }
+  }
+
   def clearGame() = Action.async {
     game.push(ClearGame()).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
