@@ -239,9 +239,8 @@ class Board extends React.Component {
     draw = () => {
         if(this.props.data) {
             const ctx = this.canvasRef.getContext("2d");
-            this.collisionBullet();
-            this.collisionBulletShip();
-            this.moveBullet();
+            //ctx.canvas.width = window.innerWidth
+            //ctx.canvas.height = window.innerHeight
             ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
             for(var player in this.props.data.players) {
                 var p = this.props.data.players[player];
@@ -288,84 +287,6 @@ class Board extends React.Component {
         ctx.lineTo(5,-2);
         ctx.closePath();
         ctx.fill();
-    }
-
-    collisionBulletShip() {
-        for(var bullet in this.props.data.bullets) {
-            var b = this.props.data.bullets[bullet];
-            var bul = {x: b.posX-5, y: b.posY+5, width: 10, height: 10};
-            for(var player in this.props.data.players) {
-                var p = this.props.data.players[player];
-                var pla = {x: p.posX-20, y: p.posY-20, width: 40, height: 40}
-                if(bul.x < pla.x + pla.width &&
-                    bul.x + bul.width > pla.x &&
-                    bul.y < pla.y + pla.height &&
-                    bul.height + bul.y > pla.y &&
-                    b.nameShip != p.name) {
-                    fetch('/dropB/'+b.id, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    });
-                    fetch('/lostL/'+p.name+'/1', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    });
-                    if(p.life <= 1) {
-                        fetch('/dropP/'+p.name, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: '{}'
-                        });
-                    }
-                    fetch('/addPnt/'+b.nameShip+'/1', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    });
-                }
-            }
-        }
-    }
-
-    collisionBullet() {
-        for(var bullet in this.props.data.bullets) {
-            var b = this.props.data.bullets[bullet];
-            if(b.posX > 800 || b.posX < 0 || b.posY < -600 || b.posY > 0) {
-                fetch('/dropB/'+b.id, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: '{}'
-                });
-            }
-        }
-    }
-
-    moveBullet = () => {
-        fetch('/mvB', {
-            method: 'POST',
-            header: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: '{}'
-        });
     }
 
     render() {
@@ -443,6 +364,13 @@ class Joystick extends React.Component {
             if(this.props.data.players[player].name == this.props.name) {
                 this.color = this.props.data.players[player].color;
             }
+        }
+        document.body.addEventListener('keyup', this.handleInput.bind(this), false);
+    }
+
+    handleInput(e) {
+        if(event.keyCode == '32') {
+            this.shoot();
         }
     }
 

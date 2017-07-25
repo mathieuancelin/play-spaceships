@@ -3,7 +3,7 @@
 
 @main("SpaceShip - Board", host = host) {
   <div id="app"></div>
-
+  <button id="newGame">Nouvelle partie</button>
   <button id="hidden">+</button>
   <div id="log" style="display:none">
     <div id="data"></div>
@@ -19,6 +19,17 @@
   </div>
 
   <script>
+      document.getElementById('newGame').addEventListener('click', function(e) {
+          fetch('/clear', {
+              method: 'POST',
+              header: {
+                  'Accept': 'application/hson',
+                  'Content-Type': 'application/json'
+              },
+              body: '{}'
+          });
+      });
+
       document.getElementById('hidden').addEventListener('click', function(e) {
           var log = document.getElementById('log');
           if(log.style.display == 'none') {
@@ -88,12 +99,13 @@
               }
           }).then((resp) => resp.json())
             .then(function(data) {
+               document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
                Spaceships.init(document.getElementById('app'),data);
             });
       }
       source.onmessage = function(e) {
-           data = e.data;
-           //document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
+           var data = e.data;
+           document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
            Spaceships.init(document.getElementById('app'), JSON.parse(data));
       };
   </script>

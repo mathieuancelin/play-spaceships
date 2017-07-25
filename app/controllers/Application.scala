@@ -59,12 +59,6 @@ class Application @Inject()()(implicit ec: ExecutionContext) extends Controller 
     }
   }
 
-  def moveBullet() = Action.async {
-    game.push(MoveBullet()).flatMap { _ =>
-      game.state.map(s => Ok(s.toJson))
-    }
-  }
-
   def dropBullet(id: String) = Action.async {
     game.push(DropBullet(id.toInt)).flatMap { _ =>
       game.state.map(s => Ok(s.toJson))
