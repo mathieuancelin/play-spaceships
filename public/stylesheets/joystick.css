@@ -1,1 +1,5 @@
 #tir > .nipple > .front {opacity: 0 !important;}
+
+#joystick {
+    background-image: url("../images/joystick.png");
+}

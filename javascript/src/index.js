@@ -288,9 +288,15 @@ class Board extends React.Component {
         ctx.lineTo(-20,18);
         ctx.closePath();
         ctx.fill();
-        for(var i=0;i<life;i++) {
-            ctx.fillRect(-25+16*i,30,16,5);
+        var opacityShield = 0;
+        switch(life) {
+            case 3 : opacityShield = 0.5;break;
+            case 2 : opacityShield = 0.3;break;
+            case 1 : opacityShield = 0;break;
         }
+        ctx.fillStyle="rgba(23,145,167,"+opacityShield+")";
+        ctx.arc(-4,0,40,0,Math.PI*2,true);
+        ctx.fill();
     }
 
     bullet = (ctx) => {
@@ -325,13 +331,19 @@ class Board extends React.Component {
 }
 
 const stylesJoystick = {
-    border: '2px solid black',
-    backgroundColor: '#adadad',
+    border: '1px solid black',
+    backgroundImage: "url("+"/assets/images/joystick.png"+")",
+    backgroundSize: "contain",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
     height: '120px'
 };
 const stylesTir = {
-    border: '2px solid black',
-    backgroundColor: '#afd9ee',
+    border: '1px solid black',
+    backgroundImage: "url("+"/assets/images/cible.png"+")",
+    backgroundSize: "contain",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
     height: '120px'
 };
 
@@ -432,7 +444,7 @@ class Joystick extends React.Component {
         if(pName) {
             return (
                 <div>
-                    <div className="col-xs-6" style={stylesJoystick} id="joystick"></div>
+                    <div className="col-xs-6" style={stylesJoystick} id="joystick" ></div>
                     <div className="col-xs-6" style={stylesTir} id="tir"></div>
                 </div>
             );
