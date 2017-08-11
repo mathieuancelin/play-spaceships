@@ -1,15 +1,20 @@
-@(username:String, host: String)
+@(id: Int, host: String)
 @import models._
 
 @main("SpaceShip - Controller", host = host) {
-  <h4 id="name" style="text-align:center;">@username</h4>
+  <h4 id="name" style="text-align:center;"></h4>
   <div id="gamepad"></div>
   <div>&nbsp;</div>
 
   <script>
-    var ship = {};
-    ship["name"] = "@username";
+    var get = {};
+    get["id"] = "@id";
     var source = new EventSource('/source');
+
+    function getShipId(el) {
+        return el.id == get.id;
+    }
+
     source.onopen = function() {
         fetch('/getState', {
               method: 'GET',
@@ -19,12 +24,24 @@
               }
           }).then((resp) => resp.json())
             .then(function(data) {
-                Spaceships.joystick(document.getElementById('gamepad'), data, ship.name);
+                var ship = data.ships.filter(getShipId);
+                if(ship.length > 0) {
+                    ship = ship[0];
+                    document.getElementById("name").innerHTML = ship.name;
+                    Spaceships.joystick(document.getElementById('gamepad'), data, ship);
+                } else {
+                    document.location.href = "/m";
+                }
             });
     }
     source.onmessage = function(e) {
       var data = e.data;
-      Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship.name);
+      var ship = JSON.parse(data).ships.filter(getShipId);
+      if(ship.length > 0) {
+          Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship[0]);
+      } else {
+          document.location.href = "/m";
+      }
     };
   </script>
 }

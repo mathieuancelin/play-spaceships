@@ -3,19 +3,17 @@
 # Home page
 GET     /                           controllers.Application.board
 GET     /m                          controllers.Application.mobileStart
-GET     /control/:username          controllers.Application.controller(username)
+GET     /control/:id                controllers.Application.controller(id)
 GET     /res/:username/:color       controllers.Application.resultat(username,color)
-POST    /addP/:username/:color      controllers.Application.addNewPlayer(username, color)
-POST    /dropP/:username            controllers.Application.dropPlayer(username)
-POST    /addPnt/:username/:point    controllers.Application.addPoint(username, point)
-POST    /lostL/:username/:point     controllers.Application.lostLife(username, point)
-POST    /addB/:x/:y/:a/:name        controllers.Application.addBullet(x,y,a,name)
-POST    /dropB/:id                  controllers.Application.dropBullet(id)
-POST    /mvP/:username/:x/:y/:a     controllers.Application.movePlayer(username, x, y, a)
-POST    /modifS/:username/:point    controllers.Application.modifScore(username,point)
-POST    /clear                      controllers.Application.clearGame()
+POST    /addS/:username/:color      controllers.Application.addShip(username, color)
+POST    /addB/:id                   controllers.Application.addBullet(id)
+POST    /moveS/:id/:a               controllers.Application.moveShip(id,a)
+POST    /clear                      controllers.Application.clear()
 GET     /source                     controllers.Application.source()
 GET     /getState                   controllers.Application.getState()
+
+# Websocket endpoints
+GET     /echo                       controllers.Application.socket
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

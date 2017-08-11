@@ -14,217 +14,6 @@ if (!window.Symbol) {
 window.$ = $;
 window.jQuery = $;
 require('bootstrap/dist/js/bootstrap.min');
-/*
-class Vector {
-    constructor(x,y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    additionVV(vect) {
-        return new Vector(this.x + vect.x, this.y + vect.y);
-    }
-
-    additionVS(scalar) {
-        return new Vector(this.x + scalar, this.y + scalar);
-    }
-
-    multiplicationVS(scalar) {
-        return new Vector(this.x * scalar, this.y * scalar);
-    }
-
-    magnitude() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-
-    normalized() {
-        return new Vector(this.x/this.magnitude(), this.y/this.magnitude());
-    }
-}
-
-class Physics {
-    constructor() {
-        this.prevDate = Date.now();
-        this.deltaTime = 0.0;
-        this.shipList = [];
-        this.bulletList = [];
-    }
-
-    simulate(state) {
-        let now = Date.now();
-        this.deltaTime = now - this.prevDate;
-        this.prevDate = now;
-        // loop --> objet.simuler(this.deltaTime);
-    }
-
-    draw(ctx) {
-        this.shipList.forEach(function(ship) {
-            ship.draw(ctx);
-        });
-        this.bulletList.forEach(function(bullet) {
-            bullet.draw(ctx);
-        });
-    }
-
-    addShip(pos,color) {
-        this.shipList.push(new Ship(pos,color));
-    }
-
-    getShip() {
-        return this.shipList;
-    }
-
-    deleteShip() {
-
-    }
-
-    addBullet(pos) {
-        this.bulletList.push(new Bullet(pos));
-    }
-
-    getBullet() {
-        return this.bulletList;
-    }
-
-    deleteBullet() {
-
-    }
-}
-
-class ObjectPhysics {
-    constructor(pos, vitesse) {
-        this.position = pos;
-        this.angle = 0;
-        this.vitesse = vitesse;
-        this.velocity = new Vector(0,0);
-        this.angularVelocity = 0;
-        this.drag = 0.1;
-        this.angularDrag = 0.1;
-    }
-
-    simulate(deltaTime) {
-        this.position += this.velocity.additionVS(deltaTime);
-        this.velocity += this.getDragForce(this.velocity,this.drag).multiplicationVS(deltaTime);
-        this.angle += this.angularVelocity * deltaTime;
-        this.angularVelocity += this.getAngularDragForce(this.angularVelocity,this.angularDrag) * deltaTime;
-    }
-
-    getDragForce(velocity, drag) {
-        let velMag = velocity.magnitude();
-        return -velocity.multiplicationVS(drag).multiplicationVS(velMag);
-    }
-
-    getAngularDragForce(angularVelocity, angularDrag) {
-        return -angularVelocity * Math.abs(angularVelocity) * angularDrag;
-    }
-
-    pushObject(value) {
-        this.velocity.additionVS(value);
-    }
-
-    turnAround(newAngle) {
-        this.angularVelocity + newAngle - this.angle;
-    }
-
-    move(angle) {
-        this.pushObject(new Vector(Math.cos(angle), Math.sin(angle)).multiplicationVS(this.vitesse));
-        this.turnAround(angle);
-    }
-
-    teleport(vector) {
-        this.position = vector;
-    }
-}
-
-class Ship extends ObjectPhysics {
-    constructor(pos,color) {
-        super(pos);
-        this.color = color;
-        this.life = 3;
-    }
-
-    draw(ctx) {
-        ctx.save();
-        ctx.translate(this.position.x,-this.position.y);
-        ctx.rotate(-this.angle);
-        ctx.fillStyle = this.color;
-        ctx.globalAplha = 1.0;
-        ctx.beginPath();
-        ctx.moveTo(25,25);
-        ctx.lineTo(-25,-25);
-        ctx.lineTo(25,-25);
-        ctx.lineTo(-25,25);
-        ctx.closePath();
-        ctx.fill();
-        for(var i=0;i<this.life;i++) {
-            ctx.fillRect(-25+16*i,40,16,5);
-        }
-        ctx.restore();
-    }
-
-    dropLife() {
-        this.life -= 1;
-    }
-}
-
-class Bullet extends ObjectPhysics {
-    constructor(pos) {
-        super(pos);
-    }
-
-    draw(ctx) {
-        ctx.save();
-        ctx.translate(this.position.x,-this.position.y);
-        ctx.rotate(-this.angle);
-        ctx.fillStyle = "black";
-        ctx.globalAlpha = 1.0;
-        ctx.beginPath();
-        ctx.moveTo(5,5);
-        ctx.lineTo(-5,5);
-        ctx.lineTo(-5,-5);
-        ctx.lineTo(5,-5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-    }
-}
-
-class BoardV2 extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {player: [new Ship(new Vector(200, -100),"blue")], bullet: {}};
-        this.physics = new Physics();
-    }
-
-    componentDidMount() {
-        var array = this.state.player;
-        array.push(new Ship(new Vector(100,-200),"blue"));
-        this.setState = ({player: array});
-        setInterval(this.display(this),1000);
-        this.physics.addShip(new Vector(100,-100),"blue");
-        this.physics.getShip()[0].teleport(new Vector(200,-200));
-        this.physicsInterval = setInterval(() => this.physics.simulate(this.state), 1000/60);
-        const ctx = this.canvasRef.getContext("2d");
-        this.drawInterval = setInterval(() => this.physics.draw(ctx), 1000/60);
-    }
-
-    display(lol) {
-        console.log(lol.state);
-    }
-
-    componentWillUnmount() {
-        window.clearInterval(this.physicsInterval);
-        window.clearInterval(this.drawInterval);
-    }
-
-    render() {
-        return (
-            <div>
-                <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
-            </div>
-        );
-    }
-}*/
 
 class Board extends React.Component {
 
@@ -239,20 +28,18 @@ class Board extends React.Component {
     draw = () => {
         if(this.props.data) {
             const ctx = this.canvasRef.getContext("2d");
-            //ctx.canvas.width = window.innerWidth
-            //ctx.canvas.height = window.innerHeight
             ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
-            for(var player in this.props.data.players) {
-                var ship = this.props.data.players[player];
+            for(var ship in this.props.data.ships) {
+                var s = this.props.data.ships[ship];
                 ctx.save();
-                ctx.translate(ship.posX,-ship.posY);
-                ctx.rotate(-ship.angle*Math.PI/180);
-                this.ships(ctx,ship.color,ship.life);
+                ctx.translate(s.posX,-s.posY);
+                ctx.rotate(-s.angle*Math.PI/180);
+                this.ships(ctx,s.color,s.life);
                 ctx.restore();
 
-                var score = this.props.data.players[player].score;
+                /*var score = this.props.data.ships[ship].score;
                 if(this.props.data.bestScore < score) {
-                    fetch('/modifS/' + this.props.data.players[player].name + '/' + score, {
+                    fetch('/modifS/' + this.props.data.ships[ship].name + '/' + score, {
                         method: 'POST',
                         header: {
                             'Accept': 'application/json',
@@ -260,7 +47,7 @@ class Board extends React.Component {
                         },
                         body: '{}'
                     });
-                }
+                }*/
 
             }
             for(var bullet in this.props.data.bullets) {
@@ -278,7 +65,6 @@ class Board extends React.Component {
         setTimeout(this.draw, 100);
     }
 
-    // bouclier (cercle) de protection remplacer par la barre de vie (gestion collision a revoir) )=
     ships = (ctx,fillStyle,life) => {
         ctx.fillStyle = fillStyle;
         ctx.globalAplha = 1.0;
@@ -352,47 +138,33 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
+        this.connection = new WebSocket("ws://localhost:9000/echo");
+        this.connection.onopen = evt => {
+            console.log("open");
+        };
+        this.connection.onclose = evt => {
+            console.log("close");
+        };
+        this.connection.onmessage = evt => {
+            console.log("receive");
+        };
     }
 
     move() {
         if(this.joystickData) {
             if(this.joystickData.distance > 10) {
-                fetch('/mvP/' + this.props.name + '/' + Math.cos(this.joystickData.angle.radian) + '/' + Math.sin(this.joystickData.angle.radian) + '/' + this.joystickData.angle.degree, {
-                    method: 'POST',
-                    header: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: '{}'
-                });
+                let js = JSON.stringify({"action": "moveShip","id": this.props.ship.id.toString(), "angle": this.joystickData.angle.radian.toString()});
+                this.connection.send(js);
             }
         }
     }
 
     shoot() {
-        var indexP;
-        for(var player in this.props.data.players) {
-            if(this.props.data.players[player].name == this.props.name) {
-                indexP = player;
-            }
-        }
-        var p = this.props.data.players[indexP];
-        fetch('/addB/' + p.posX + '/' + p.posY + '/' + p.angle + '/' + this.props.name, {
-            method: 'POST',
-            header: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: '{}'
-        });
+        let js = JSON.stringify({"action": "addBullet", "id": this.props.ship.id.toString()});
+        this.connection.send(js);
     }
 
     componentWillMount() {
-        for(var player in this.props.data.players) {
-            if(this.props.data.players[player].name == this.props.name) {
-                this.color = this.props.data.players[player].color;
-            }
-        }
         document.body.addEventListener('keyup', this.handleInput.bind(this), false);
     }
 
@@ -412,7 +184,7 @@ class Joystick extends React.Component {
         };
         var manager = njs.create(joystickParams);
         manager.on('added', function(evt, nipple) {
-            that.interval = setInterval(() => that.move(), 1000/60);
+            that.interval = setInterval(() => that.move(), 100);
             nipple.on('move', function(evt, data) {
                 that.joystickData = data;
             });
@@ -434,14 +206,14 @@ class Joystick extends React.Component {
     }
 
     render() {
-        var pName=false;
-        for(var player in this.props.data.players) {
-            var p = this.props.data.players[player];
-            if(p.name == this.props.name) {
-                pName = true;
+        var checkID=true;
+        for(var ship in this.props.data.ships) {
+            var s = this.props.data.ships[ship];
+            if(s.id == this.props.ship.id) {
+                checkID = true;
             }
         }
-        if(pName) {
+        if(checkID) {
             return (
                 <div>
                     <div className="col-xs-6" style={stylesJoystick} id="joystick" ></div>
@@ -449,7 +221,8 @@ class Joystick extends React.Component {
                 </div>
             );
         } else {
-            document.location.href = "/res/"+ this.props.name +'/'+ this.color.slice(1);
+            this.connection.onclose();
+            document.location.href = "/res/"+ this.props.ship.name +'/'+ this.props.ship.color/*.slice(1)*/;
             return false;
         }
     }
@@ -478,6 +251,6 @@ export function init(node, data) {
   ReactDOM.render(<Board data={data} />, node);
 }
 
-export function joystick(node, data, name) {
-    ReactDOM.render(<Joystick data={data} name={name} />, node);
+export function joystick(node, data, ship) {
+    ReactDOM.render(<Joystick data={data} ship={ship} />, node);
 }

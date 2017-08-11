@@ -3,36 +3,56 @@ package state
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Cancellable}
 import akka.stream.scaladsl.{BroadcastHub, Keep, RunnableGraph, Source, SourceQueueWithComplete}
 import akka.stream.{ActorMaterializer, OverflowStrategy}
-import models.Player
-import models.Vector
-import models.Bullet
+import models._
 import play.api.Logger
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.collection._
 
 // Class Action
 sealed trait Action
-case class AddPlayer(player: Player) extends Action
-case class DropPlayer(username: String) extends Action
-case class AddPoint(username: String, point: Int) extends Action
-case class LostLife(username: String, point: Int) extends Action
-case class AddBullet(bullet: Bullet) extends Action
-case class DropBullet(id: Int) extends Action
-case class MovePlayer(username: String, pos: Vector, angle: Float) extends Action
-case class ModifScore(username: String, point: Int) extends Action
-case class ClearGame() extends Action
+case class AddShip(ship: Ship) extends Action
+case class AddBullet(id: Int, idB: Int) extends Action
+case class MoveShip(id: Int, angle: Float) extends Action
+case class TeleportShip(id: Int, position: Vector) extends Action
+case class Clear() extends Action
 case object TickEvent extends Action
 
 // Class State
 sealed trait State
-case class GameState(players: Seq[Player] = Seq.empty[Player], bullets: Seq[Bullet] = Seq.empty[Bullet], nameScore: String = "", bestScore: Int = 0) extends State {
+case class GameState(ships: Seq[Ship] = Seq.empty[Ship],bullets: Seq[Bullet] = Seq.empty[Bullet], nameScore: String = "", bestScore: Int = 0) extends State {
+
+  private var prevDate: Long = System.currentTimeMillis()
+  private var deltaTime: Float = 0
+
+  def simulate() = {
+    var now:Long = System.currentTimeMillis()
+    var delta: Float = now-prevDate
+    delta = delta / 1000f
+    deltaTime = delta
+    prevDate = now
+    var shipsL: Seq[Ship] = Seq.empty[Ship]
+    var bulletsL: Seq[Bullet] = Seq.empty[Bullet]
+    for(ship <- ships) {
+      var s = ship.cloned()
+      s.simulate(deltaTime)
+      shipsL = shipsL :+ s
+    }
+    for(bullet <- bullets) {
+      var b = bullet.cloned()
+      b.simulate(deltaTime)
+      bulletsL = bulletsL :+ b
+    }
+    (shipsL,bulletsL)
+  }
+
   def toJson: JsValue = Json.obj(
-    "players" -> JsArray(players.map(_.toJson)),
+    "ships" -> JsArray(ships.map(_.toJson)),
     "bullets" -> JsArray(bullets.map(_.toJson)),
     "nameScore" -> nameScore,
     "bestScore" -> bestScore
@@ -47,62 +67,58 @@ class StateGame() {
 
   private val initialState = GameState()
   private val ref = new AtomicReference[GameState](initialState)
-  private var indexBullet = 0
-  private var prevDate = System.currentTimeMillis()
-  private val vitesse = 0.25
+
+   def stop() = {
+     Logger.info("Cancelling queue and ticks")
+     queue.complete()
+     tickCancel.cancel()
+   }
 
   def reducer[A <: Action](game: GameState, action: A): GameState = action match {
-    case AddPlayer(p) => game.copy(players = game.players :+ p)
-    case DropPlayer(u) => game.copy(players = game.players.filter(_.name != u))
-    case AddPoint(u, p) =>
-      game.players
-          .filter(_.name == u)
-          .headOption
-          .map(player =>
-            game.copy(players = game.players.filter(_.name != u) :+
-                new Player(player.name, player.pos,player.angle,player.score+p,player.color, player.life))
-          ).getOrElse(game);
-    case LostLife(u,p) =>
-        game.players
-          .filter(_.name == u)
-          .headOption
-          .map(player =>
-            game.copy(players = game.players.filter(_.name != u) :+
-              new Player(player.name, player.pos,player.angle,player.score,player.color, player.life-p))
-          ).getOrElse(game);
-    case AddBullet(b) => game.copy(bullets = game.bullets :+ b)
-    case DropBullet(id) => game.copy(bullets = game.bullets.filter(_.id != id))
-    case MovePlayer(u,p,a) => {
-      game.players
-          .filter(_.name == u)
-          .headOption
-          .map(player => {
-            var x = player.pos.x + p.x*2
-            var y = player.pos.y + p.y*2
-            if (x < -10) {
-              x = 800
-            } else if (x > 810) {
-              x = 0
-            }
-            if (y > 10) {
-              y = -600;
-            } else if (y < -610) {
-              y = 0
-            }
-              game.copy(players = game.players.filter(_.name != u) :+
-                new Player(player.name, new Vector(x, y), a, player.score, player.color, player.life))
+    case AddShip(ship) => game.copy(ships = game.ships :+ ship)
+    case AddBullet(id,idB) => {
+      game.ships.filter(_.id == id).headOption
+          .map(ship => {
+            game.copy(bullets = game.bullets :+ new Bullet(idB,ship.position,ship.angle,100,ship.name))
           })
-        .getOrElse(game);
+          .getOrElse(game)
     }
-    case ModifScore(u,p) => game.copy(nameScore = u,bestScore = p)
-    case ClearGame() => game.copy(players = Seq.empty[Player], bullets = Seq.empty[Bullet])
+    case MoveShip(id,angle) => {
+      game.ships.filter(_.id == id).headOption
+          .map(ship => {
+            var s = ship.cloned()
+            s.move(angle)
+            game.copy(ships = game.ships.filter(_.id != id) :+ s)
+          })
+          .getOrElse(game)
+    }
+    case TeleportShip(id,position) => {
+      game.ships.filter(_.id == id).headOption
+        .map(ship => {
+          var s = ship.cloned()
+          s.teleport(position)
+          game.copy(ships = game.ships.filter(_.id != id) :+ s)
+        })
+        .getOrElse(game)
+    }
+    case Clear() => game.copy(ships =  Seq.empty[Ship], bullets = Seq.empty[Bullet], nameScore = "", bestScore = 0)
     case _ => game
   }
 
+  val tick: Source[Action, Cancellable] = Source.tick(0.second, 100.millis, NotUsed).map(_ => TickEvent)
   val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
-  val eventsAndTicks: Source[GameState, SourceQueueWithComplete[Action]] = source.merge(Source.tick(0.second, 100.millis, NotUsed).map(_ => TickEvent)).scan(initialState) { (prevState, action) =>
-    val newState = reducer(prevState, action)
+  val eventsAndTicks: Source[GameState, (SourceQueueWithComplete[Action], Cancellable)] = source.mergeMat(tick)((a, b) => (a, b)).scan(initialState) { (prevState, action) =>
 
+    val newState = reducer(prevState, action)
+    val (ships,bullets) = newState.simulate()
+    val state = new GameState(ships,bullets,newState.nameScore,newState.bestScore)
+    //newState.simulate()
+    ref.set(state)
+    //println(state)
+    state
+
+
+    /*
     // CALCUL DEPLACEMENT DES TIRS
     var now = System.currentTimeMillis()
     var deltaTime = (now - prevDate) * vitesse.toFloat
@@ -113,7 +129,7 @@ class StateGame() {
         var x = bullet.pos.x + Math.cos(bullet.angle.toDouble * Math.PI/180).toFloat*deltaTime
         var y = bullet.pos.y + Math.sin(bullet.angle.toDouble * Math.PI/180).toFloat*deltaTime
         if(x < 800 && x > 0 && y > -600 && y < 0) {
-          bullets = bullets :+ new Bullet(bullet.id,new Vector(x,y),bullet.angle,bullet.nameShip)
+          bullets = bullets :+ new Bullet(bullet.id,new models.Vector(x,y),bullet.angle,bullet.nameShip)
         }
       }
       newState.copy(bullets = bullets)
@@ -151,7 +167,7 @@ class StateGame() {
 
     ref.set(finalState)
     //Logger.info(s"action: $action => next state: $newState")
-    finalState
+    finalState*/
   } statefulMapConcat { () =>
 
     import scala.collection.immutable.{ Iterable => Imuterable }
@@ -165,7 +181,7 @@ class StateGame() {
       } else {
         Imuterable(next)
       }
-      lastState = next
+      lastState = new GameState(next.ships,next.bullets,next.nameScore,next.bestScore)
 
       nextGameState
     }
@@ -173,10 +189,10 @@ class StateGame() {
     processNextState
   }
 
-  val runnableGraph: RunnableGraph[(SourceQueueWithComplete[Action], Source[GameState, NotUsed])] =
+  val runnableGraph: RunnableGraph[((SourceQueueWithComplete[Action], Cancellable), Source[GameState, NotUsed])] =
     eventsAndTicks.toMat(BroadcastHub.sink(bufferSize = 256))(Keep.both)
 
-  val (queue: SourceQueueWithComplete[Action], stateStream: Source[GameState, NotUsed]) = runnableGraph.run()
+  val ((queue: SourceQueueWithComplete[Action], tickCancel: Cancellable), stateStream: Source[GameState, NotUsed]) = runnableGraph.run()
 
   def stream: Source[GameState, NotUsed] = stateStream
 

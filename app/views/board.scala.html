@@ -8,6 +8,8 @@
   <div id="log" style="display:none">
     <div id="data"></div>
     <br />
+    <input type="text" id="mess" />
+    <button type="button" id="send">Send Message</button>
     <button type="button" id="clearAll">CLEAR ALL</button><br />
     <input type="text" id="nameS" />
     <button type="button" id="deleteP">DELETE</button><br />
@@ -19,6 +21,28 @@
   </div>
 
   <script>
+    var myWebSocket = new WebSocket("ws://localhost:9000/echo");
+
+    myWebSocket.onopen = function(event) {
+        console.log("connect !");
+    };
+    myWebSocket.onclose = function(event) {
+        console.log("disconnect !");
+    };
+    myWebSocket.onmessage = function(event) {
+        console.log(event.data);
+    };
+
+    document.getElementById('send').addEventListener('click', function(e) {
+        var m = document.getElementById('mess').value;
+        myWebSocket.send(m);
+    });
+
+
+    //myWebSocket.close();
+
+
+
       document.getElementById('newGame').addEventListener('click', function(e) {
           fetch('/clear', {
               method: 'POST',
@@ -54,7 +78,7 @@
 
       document.getElementById('deleteP').addEventListener('click', function(e) {
           var name = document.getElementById('nameS').value;
-          fetch('/dropP/'+name, {
+          fetch('/addS/'+name+'/ssssss', {
               method: 'POST',
               headers: {
                   'Accept': 'application/json',
@@ -66,7 +90,7 @@
 
       document.getElementById('deleteB').addEventListener('click', function(e) {
           var id = document.getElementById('idB').value;
-          fetch('/dropB/'+id, {
+          fetch('/addB/'+id, {
               method: 'POST',
               headers: {
                   'Accept': 'application/json',
@@ -79,7 +103,7 @@
       document.getElementById('addP').addEventListener('click', function(e) {
           var name = document.getElementById('nameSh').value;
           var point = document.getElementById('point').value;
-          fetch('/addPnt/'+name+'/'+point, {
+          fetch('/moveS/'+name+'/'+point, {
               method: 'POST',
               headers: {
                   'Accept': 'application/json',
