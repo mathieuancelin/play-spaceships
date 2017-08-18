@@ -5,10 +5,6 @@ GET     /                           controllers.Application.board
 GET     /m                          controllers.Application.mobileStart
 GET     /control/:id                controllers.Application.controller(id)
 GET     /res/:username/:color       controllers.Application.resultat(username,color)
-POST    /addS/:username/:color      controllers.Application.addShip(username, color)
-POST    /addB/:id                   controllers.Application.addBullet(id)
-POST    /moveS/:id/:a               controllers.Application.moveShip(id,a)
-POST    /clear                      controllers.Application.clear()
 GET     /source                     controllers.Application.source()
 GET     /getState                   controllers.Application.getState()
 

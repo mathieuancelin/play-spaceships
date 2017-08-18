@@ -51,8 +51,11 @@ class Ship (
   )
 
   def simulate(deltaTime: Float): Unit = {
-    this.position = this.position + (this.velocity * deltaTime)
-
+    var pos = this.position + (this.velocity * this.speed * 0.1f/*deltaTime*/)
+    if(pos.x > 0 && pos.x < 800 && pos.y < 0 && pos.y > -600) {
+      this.position = pos
+      //println(deltaTime)
+    }
     this.velocity = this.velocity + this.getDragForce(this.velocity, this.drag) * deltaTime
     if(this.velocity.x < 0.1f && this.velocity.x > -0.1f) {
       this.velocity.x = 0f
@@ -85,7 +88,7 @@ class Ship (
   }
 
   def move(newAngle: Float): Unit = {
-    this.push(new Vector(Math.cos(newAngle).toFloat, Math.sin(newAngle).toFloat) * this.speed)
+    this.push(new Vector(Math.cos(newAngle).toFloat, Math.sin(newAngle).toFloat))
     this.turnToward(newAngle)
   }
 
@@ -100,10 +103,10 @@ class Bullet (
   var position: Vector,
   var angle: Float,
   var speed: Float,
-  var nameShip: String
+  var idShip: Int
   ) {
   def cloned(): Bullet = return new Bullet(this.id,new Vector(this.position.x,this.position.y),
-  this.angle,this.speed,this.nameShip)
+  this.angle,this.speed,this.idShip)
 
   def toJson(): JsValue = Json.obj(
     "id" -> this.id,
@@ -111,10 +114,10 @@ class Bullet (
     "posY" -> this.position.y,
     "angle" -> this.angle,
     "speed" -> this.speed,
-    "nameShip" -> this.nameShip
+    "idShip" -> this.idShip
   )
 
   def simulate(deltaTime: Float): Unit = {
-    this.position = this.position + (new Vector(Math.cos(this.angle*(Math.PI/180)).toFloat, Math.sin(this.angle*(Math.PI/180)).toFloat) * this.speed * deltaTime)
+    this.position = this.position + (new Vector(Math.cos(this.angle*(Math.PI/180)).toFloat, Math.sin(this.angle*(Math.PI/180)).toFloat) * this.speed * 0.1f)
   }
 }

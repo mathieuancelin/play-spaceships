@@ -9,6 +9,7 @@
   <script>
     var get = {};
     get["id"] = "@id";
+    get["host"] = "@host";
     var source = new EventSource('/source');
 
     function getShipId(el) {
@@ -28,7 +29,7 @@
                 if(ship.length > 0) {
                     ship = ship[0];
                     document.getElementById("name").innerHTML = ship.name;
-                    Spaceships.joystick(document.getElementById('gamepad'), data, ship);
+                    Spaceships.joystick(document.getElementById('gamepad'), data, ship, get.host);
                 } else {
                     document.location.href = "/m";
                 }
@@ -38,7 +39,7 @@
       var data = e.data;
       var ship = JSON.parse(data).ships.filter(getShipId);
       if(ship.length > 0) {
-          Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship[0]);
+          Spaceships.joystick(document.getElementById('gamepad'), JSON.parse(data), ship[0], get.host);
       } else {
           document.location.href = "/m";
       }

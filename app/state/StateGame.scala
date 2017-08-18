@@ -31,11 +31,12 @@ case class GameState(ships: Seq[Ship] = Seq.empty[Ship],bullets: Seq[Bullet] = S
   private var deltaTime: Float = 0
 
   def simulate() = {
-    var now:Long = System.currentTimeMillis()
+    var now: Long = System.currentTimeMillis()
     var delta: Float = now-prevDate
     delta = delta / 1000f
     deltaTime = delta
-    prevDate = now
+    //prevDate = now
+    //println(prevDate)
     var shipsL: Seq[Ship] = Seq.empty[Ship]
     var bulletsL: Seq[Bullet] = Seq.empty[Bullet]
     for(ship <- ships) {
@@ -79,7 +80,7 @@ class StateGame() {
     case AddBullet(id,idB) => {
       game.ships.filter(_.id == id).headOption
           .map(ship => {
-            game.copy(bullets = game.bullets :+ new Bullet(idB,ship.position,ship.angle,100,ship.name))
+            game.copy(bullets = game.bullets :+ new Bullet(idB,ship.position,ship.angle,100,id))
           })
           .getOrElse(game)
     }
@@ -112,62 +113,52 @@ class StateGame() {
     val newState = reducer(prevState, action)
     val (ships,bullets) = newState.simulate()
     val state = new GameState(ships,bullets,newState.nameScore,newState.bestScore)
-    //newState.simulate()
-    ref.set(state)
-    //println(state)
-    state
 
-
-    /*
-    // CALCUL DEPLACEMENT DES TIRS
-    var now = System.currentTimeMillis()
-    var deltaTime = (now - prevDate) * vitesse.toFloat
-    prevDate = now
-    val bulletState = if(!newState.bullets.isEmpty) {
-      var bullets: Seq[Bullet] = Seq.empty[Bullet]
-      for(bullet <- newState.bullets) {
-        var x = bullet.pos.x + Math.cos(bullet.angle.toDouble * Math.PI/180).toFloat*deltaTime
-        var y = bullet.pos.y + Math.sin(bullet.angle.toDouble * Math.PI/180).toFloat*deltaTime
-        if(x < 800 && x > 0 && y > -600 && y < 0) {
-          bullets = bullets :+ new Bullet(bullet.id,new models.Vector(x,y),bullet.angle,bullet.nameShip)
+    val stateF = if(!state.ships.isEmpty && !state.bullets.isEmpty) {
+      var bullets: Seq[Bullet] = state.bullets
+      var ships: Seq[Ship] = state.ships
+      for(bullet <- state.bullets) {
+        //VERIFIER COLLISION TIR - BORD DU TERRAIN
+        if(bullet.position.x > 800 || bullet.position.x < 0 || bullet.position.y < -600 || bullet.position.y > 0) {
+          bullets = bullets.filter(_.id != bullet.id)
         }
-      }
-      newState.copy(bullets = bullets)
-    } else {
-      newState
-    }
 
-    // CALCUL COLLISION AVEC VAISSEAU-TIR
-    val finalState = if(!bulletState.players.isEmpty && ! bulletState.bullets.isEmpty) {
-      var bullets : Seq[Bullet] = bulletState.bullets
-      var players : Seq[Player] = bulletState.players
-      for(bullet <- bulletState.bullets) {
-        for(player <- bulletState.players) {
-          if(bullet.pos.x-5 < player.pos.x-20 + 40 &&
-              bullet.pos.x-5 + 10 > player.pos.x-20 &&
-              bullet.pos.y+5 < player.pos.y-20 + 40 &&
-              bullet.pos.y+5 + 10 > player.pos.y-20 &&
-              bullet.nameShip != player.name) {
+        for(ship <- state.ships) {
+          //VERIFIER COLLISION VAISSEAU - TIR
+          if(bullet.position.x-5 < ship.position.x-20 + 40 &&
+            bullet.position.x-5 + 10 > ship.position.x-20 &&
+            bullet.position.y+5 < ship.position.y-20 + 40 &&
+            bullet.position.y+5 + 10 > ship.position.y-20 &&
+            bullet.idShip != ship.id) {
+            //Supprime le tir
             bullets = bullets.filter(_.id != bullet.id)
-            players = players.filter(_.name != player.name)
-            var scoreUp = players.filter(_.name == bullet.nameShip)
-            players = players.filter(_.name != bullet.nameShip)
-            scoreUp.headOption.map(p =>
-              players = players :+ new Player(p.name,p.pos,p.angle,p.score+1,p.color,p.life))
-            if(!(player.life-1 <= 0)) {
-              players = players :+ new Player(player.name,player.pos,player.angle,player.score,player.color,player.life-1)
+            //Supprime le ship
+            ships = ships.filter(_.id != ship.id)
+            //Ajouter score
+            ships.filter(_.id == bullet.idShip).headOption.map(p => {
+              ships = ships.filter(_.id != bullet.idShip)
+              ships = ships :+ new Ship(p.id, p.name, p.position, p.angle, p.speed, p.color, p.velocity,
+                p.angularVelocity, p.drag, p.angularDrag, p.life, p.score + 1)
+            })
+            //Verifie la vie
+            if(!(ship.life-1 <= 0)) {
+              ships = ships :+ new Ship(ship.id,ship.name,ship.position, ship.angle,
+              ship.speed,ship.color,ship.velocity,ship.angularVelocity,ship.drag,
+              ship.angularDrag,ship.life-1,ship.score)
             }
+
+
           }
         }
       }
-      bulletState.copy(players = players, bullets = bullets)
+      state.copy(ships = ships, bullets = bullets)
     } else {
-      bulletState
+      state
     }
 
-    ref.set(finalState)
+    ref.set(stateF)
     //Logger.info(s"action: $action => next state: $newState")
-    finalState*/
+    stateF
   } statefulMapConcat { () =>
 
     import scala.collection.immutable.{ Iterable => Imuterable }

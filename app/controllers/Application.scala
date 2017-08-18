@@ -43,27 +43,24 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
     Future.successful(())
   })
 
-
   def socket = WebSocket.accept[String, String] { request =>
     Flow[String].map {res =>
-      var output = "";
+      var output = ""
       val data: JsValue = Json.parse(res)
       val action = (data \ "action").as[String]
 
       action match {
         case "addShip" => {
-          println("Add Ship")
           var name = (data \ "name").as[String]
           var color = (data \ "color").as[String]
           var rnd = new scala.util.Random
           output = indexShip.toString()
-          game.push(AddShip(new Ship(indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,20,color))).flatMap { _ =>
+          game.push(AddShip(new Ship(indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,10,color))).flatMap { _ =>
             indexShip += 1
             game.state.map(s => Ok(s.toJson))
           }
         }
         case "addBullet" => {
-          println("Add Bullet")
           var id = (data \ "id").as[String]
           output = indexBullet.toString()
           game.push(AddBullet(id.toInt,indexBullet)).flatMap { _ =>
@@ -72,7 +69,6 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
           }
         }
         case "moveShip" => {
-          println("Move Ship")
           var id = (data \ "id").as[String]
           var angle = (data \ "angle").as[String]
           game.push(MoveShip(id.toInt, angle.toFloat)).flatMap { _ =>
@@ -80,7 +76,6 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
           }
         }
         case "clear" => {
-          println("clear")
           game.push(Clear()).flatMap { _ =>
             game.state.map(s => Ok(s.toJson))
           }
@@ -89,57 +84,7 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
       }
       output
     }
-
-
-
-    /*
-    val in = Sink.foreach[String](res => {
-      val data: JsValue = Json.parse(res)
-      val action = (data \ "action").as[String]
-
-      action match {
-        case "addShip" => {
-          println("Add Ship")
-          var name = (data \ "name").as[String]
-          var color = (data \ "color").as[String]
-          var rnd = new scala.util.Random
-          game.push(AddShip(new Ship(indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,20,color))).flatMap { _ =>
-            indexShip += 1
-            output = indexShip.toString()
-            game.state.map(s => Ok(s.toJson))
-          }
-        }
-        case "addBullet" => {
-          println("Add Bullet")
-          var id = (data \ "id").as[String]
-          game.push(AddBullet(id.toInt,indexBullet)).flatMap { _ =>
-            indexBullet += 1
-            game.state.map(s => Ok(s.toJson))
-          }
-        }
-        case "moveShip" => {
-          println("Move Ship")
-          var id = (data \ "id").as[String]
-          var angle = (data \ "angle").as[String]
-          game.push(MoveShip(id.toInt, angle.toFloat)).flatMap { _ =>
-            game.state.map(s => Ok(s.toJson))
-          }
-        }
-        case "clear" => {
-          println("clear")
-          game.push(Clear()).flatMap { _ =>
-            game.state.map(s => Ok(s.toJson))
-          }
-        }
-        case _ => println("Json data unknown")
-      }
-    })
-    val out = Source.single(output).concat(Source.maybe)
-    Flow.fromSinkAndSource(in, out)*/
   }
-
-
-
 
   def board = Action { implicit request =>
     Ok(views.html.board(request.host.split(":")(0)))
@@ -147,33 +92,6 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
 
   def mobileStart = Action { implicit request =>
     Ok(views.html.mobilestart(request.host.split(":")(0)))
-  }
-
-  def addShip(name: String, color: String) = Action.async {
-    var rnd = new scala.util.Random
-    game.push(AddShip(new Ship(indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,20,color))).flatMap { _ =>
-      indexShip += 1
-      game.state.map(s => Ok(s.toJson))
-    }
-  }
-
-  def addBullet(id: String) = Action.async {
-    game.push(AddBullet(id.toInt,indexBullet)).flatMap { _ =>
-      indexBullet += 1
-      game.state.map(s => Ok(s.toJson))
-    }
-  }
-
-  def moveShip(id: String, angle: String) = Action.async {
-    game.push(MoveShip(id.toInt, angle.toFloat)).flatMap { _ =>
-      game.state.map(s => Ok(s.toJson))
-    }
-  }
-
-  def clear() = Action.async {
-    game.push(Clear()).flatMap { _ =>
-      game.state.map(s => Ok(s.toJson))
-    }
   }
 
   def getState() = Action.async {

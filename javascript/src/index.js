@@ -34,7 +34,7 @@ class Board extends React.Component {
                 ctx.save();
                 ctx.translate(s.posX,-s.posY);
                 ctx.rotate(-s.angle*Math.PI/180);
-                this.ships(ctx,s.color,s.life);
+                this.ships(ctx,"#"+s.color,s.life);
                 ctx.restore();
 
                 /*var score = this.props.data.ships[ship].score;
@@ -138,7 +138,7 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
-        this.connection = new WebSocket("ws://localhost:9000/echo");
+        this.connection = new WebSocket("ws://"+this.props.host+":9000/echo");
         this.connection.onopen = evt => {
             console.log("open");
         };
@@ -251,6 +251,6 @@ export function init(node, data) {
   ReactDOM.render(<Board data={data} />, node);
 }
 
-export function joystick(node, data, ship) {
-    ReactDOM.render(<Joystick data={data} ship={ship} />, node);
+export function joystick(node, data, ship, host) {
+    ReactDOM.render(<Joystick data={data} ship={ship} host={host} />, node);
 }
