@@ -1,0 +1,17 @@
+@(gameList: Seq[Game], host: String)
+@import models._
+
+@main("SpaceShip - Home", host = host) {
+  <div id="partyManager"></div>
+  <script>
+    let get = {};
+    get["host"] = "@host";
+    let list = [];
+    @gameList.map { game =>
+      list.push("@game.name");
+    }
+    setInterval(function() {
+      Spaceships.partyManager(document.getElementById("partyManager"), list, get.host);
+    }, 1000);
+  </script>
+}

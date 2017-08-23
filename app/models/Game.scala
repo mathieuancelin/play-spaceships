@@ -1,6 +1,15 @@
 package models
 
 import play.api.libs.json.{JsArray, JsValue, Json}
+import state._
+
+class Game(var id: Int,
+           var name: String,
+           var state: StateGame,
+           var indexShip: Int,
+           var indexBullet: Int) {
+
+}
 
 class Vector(var x:Float, var y:Float) {
   def +(that: Vector) = new Vector(this.x + that.x, this.y + that.y)

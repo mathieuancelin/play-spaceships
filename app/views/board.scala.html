@@ -1,4 +1,4 @@
-@(host: String)
+@(id: Int, host: String)
 @import models._
 
 @main("SpaceShip - Board", host = host) {
@@ -21,7 +21,7 @@
   </div>
 
   <script>
-    var myWebSocket = new WebSocket("ws://192.168.86.156:9000/echo");
+    var myWebSocket = new WebSocket("ws://@host:9000/wsG/@id");
 
     myWebSocket.onopen = function(event) {
         console.log("connect !");
@@ -113,9 +113,9 @@
           });
       });
 
-      var source = new EventSource('/source');
+      var source = new EventSource('/source/@id');
       source.onopen = function() {
-          fetch('/getState', {
+          fetch('/getState/@id', {
               method: 'GET',
               headers: {
                   'Accept': 'application/json',
@@ -124,13 +124,13 @@
           }).then((resp) => resp.json())
             .then(function(data) {
                document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
-               Spaceships.init(document.getElementById('app'),data);
+               Spaceships.board(document.getElementById('app'),data);
             });
       }
       source.onmessage = function(e) {
            var data = e.data;
            document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
-           Spaceships.init(document.getElementById('app'), JSON.parse(data));
+           Spaceships.board(document.getElementById('app'), JSON.parse(data));
       };
   </script>
 }

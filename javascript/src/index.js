@@ -138,7 +138,7 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
-        this.connection = new WebSocket("ws://"+this.props.host+":9000/echo");
+        this.connection = new WebSocket("ws://"+this.props.host+":9000/wsG/"+this.props.id);
         this.connection.onopen = evt => {
             console.log("open");
         };
@@ -206,11 +206,12 @@ class Joystick extends React.Component {
     }
 
     render() {
-        var checkID=true;
+        var checkID=false;
         for(var ship in this.props.data.ships) {
             var s = this.props.data.ships[ship];
             if(s.id == this.props.ship.id) {
                 checkID = true;
+                console.log(checkID);
             }
         }
         if(checkID) {
@@ -244,13 +245,74 @@ class Leaderboard extends React.Component {
     }
 }
 
-export function init(node, data) {
+export function board(node, data) {
     if(data == null) {
         ReactDOM.render(<Board />,node);
     }
   ReactDOM.render(<Board data={data} />, node);
 }
 
-export function joystick(node, data, ship, host) {
-    ReactDOM.render(<Joystick data={data} ship={ship} host={host} />, node);
+export function joystick(node, id, data, ship, host) {
+    ReactDOM.render(<Joystick data={data} ship={ship} host={host} id={id} />, node);
+}
+
+/*
+ * PARTY MANAGER
+ * Handle different game for spaceships
+ */
+
+class GameInstance extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            input: '',
+            items: this.props.gameList
+        }
+        this.createGameWS = new WebSocket("ws://"+this.props.host+":9000/wsGl");
+        this.createGameWS.onopen = evt => {
+            console.log("open");
+        };
+        this.createGameWS.onclose = evt => {
+            console.log("close");
+        };
+        this.createGameWS.onmessage = evt => {
+            document.location.href = "/board/"+evt.data;
+        };
+    }
+
+    onChange = (event) => {
+        this.setState({input: event.target.value});
+    }
+
+    onSubmit(event) {
+        event.preventDefault();
+        let js = JSON.stringify({"name": this.state.input});
+        this.createGameWS.send(js);
+        this.setState({
+            input: '',
+            items: [...this.state.items, this.state.input]
+        });
+    }
+
+    render() {
+        return(<div>
+            <List items={this.state.items} />
+            <form onSubmit={this.onSubmit.bind(this)}>
+                <input value={this.state.input} onChange={this.onChange} />
+                <button>Submit</button>
+            </form>
+        </div>);
+    }
+}
+
+const List = props => (
+    <ul>
+        {
+            props.items.map((item, index) => <li key={index}>{item}</li>)
+        }
+    </ul>
+);
+
+export function partyManager(node, gameList, host) {
+    ReactDOM.render(<GameInstance gameList={gameList} host={host} />, node);
 }

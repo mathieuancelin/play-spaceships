@@ -1,15 +1,17 @@
 # Routes
 
 # Home page
-GET     /                           controllers.Application.board
-GET     /m                          controllers.Application.mobileStart
-GET     /control/:id                controllers.Application.controller(id)
+GET     /                           controllers.Application.home
+GET     /board/:id                  controllers.Application.board(id)
+GET     /m/:id                      controllers.Application.mobileStart(id)
+GET     /control/:id/:idShip        controllers.Application.controller(id,idShip)
 GET     /res/:username/:color       controllers.Application.resultat(username,color)
-GET     /source                     controllers.Application.source()
-GET     /getState                   controllers.Application.getState()
+GET     /source/:id                 controllers.Application.source(id)
+GET     /getState/:id               controllers.Application.getState(id)
 
 # Websocket endpoints
-GET     /echo                       controllers.Application.socket
+GET     /wsG/:id                    controllers.Application.socketGame(id)
+GET     /wsGl                       controllers.Application.socketGameList
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

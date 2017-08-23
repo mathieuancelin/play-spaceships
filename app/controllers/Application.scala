@@ -33,17 +33,30 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(implicit ec: ExecutionContext, system: ActorSystem, mat: Materializer) extends Controller {
 
-  val game = new StateGame()
-  var indexBullet = 0
-  var indexShip = 0
+  var gameList: Seq[Game] = Seq.empty[Game]
+  var indexGame: Int = 0
   val host = InetAddress.getLocalHost.getHostAddress
 
   lifecycle.addStopHook(() => {
-    game.stop()
+    for(game <- gameList) {
+      game.state.stop()
+    }
+    //game.stop()
     Future.successful(())
   })
 
-  def socket = WebSocket.accept[String, String] { request =>
+  def socketGameList() = WebSocket.accept[String, String] { request =>
+    Flow[String].map {res =>
+      val data: JsValue = Json.parse(res)
+      val name = (data \ "name").as[String]
+      gameList = gameList :+ new Game(indexGame,name,new StateGame,0,0)
+      indexGame = indexGame +1
+      indexGame.toString()
+    }
+  }
+
+  def socketGame(id: String) = WebSocket.accept[String, String] { request =>
+    var game = gameList.apply(id.toInt)
     Flow[String].map {res =>
       var output = ""
       val data: JsValue = Json.parse(res)
@@ -54,30 +67,30 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
           var name = (data \ "name").as[String]
           var color = (data \ "color").as[String]
           var rnd = new scala.util.Random
-          output = indexShip.toString()
-          game.push(AddShip(new Ship(indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,10,color))).flatMap { _ =>
-            indexShip += 1
-            game.state.map(s => Ok(s.toJson))
+          output = game.indexShip.toString()
+          game.state.push(AddShip(new Ship(game.indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,10,color))).flatMap { _ =>
+            game.indexShip += 1
+            game.state.state.map(s => Ok(s.toJson))
           }
         }
         case "addBullet" => {
           var id = (data \ "id").as[String]
-          output = indexBullet.toString()
-          game.push(AddBullet(id.toInt,indexBullet)).flatMap { _ =>
-            indexBullet += 1
-            game.state.map(s => Ok(s.toJson))
+          output = game.indexBullet.toString()
+          game.state.push(AddBullet(id.toInt,game.indexBullet)).flatMap { _ =>
+            game.indexBullet += 1
+            game.state.state.map(s => Ok(s.toJson))
           }
         }
         case "moveShip" => {
           var id = (data \ "id").as[String]
           var angle = (data \ "angle").as[String]
-          game.push(MoveShip(id.toInt, angle.toFloat)).flatMap { _ =>
-            game.state.map(s => Ok(s.toJson))
+          game.state.push(MoveShip(id.toInt, angle.toFloat)).flatMap { _ =>
+            game.state.state.map(s => Ok(s.toJson))
           }
         }
         case "clear" => {
-          game.push(Clear()).flatMap { _ =>
-            game.state.map(s => Ok(s.toJson))
+          game.state.push(Clear()).flatMap { _ =>
+            game.state.state.map(s => Ok(s.toJson))
           }
         }
         case _ => println("Json data unknown")
@@ -86,29 +99,33 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
     }
   }
 
-  def board = Action { implicit request =>
-    Ok(views.html.board(request.host.split(":")(0)))
+  def home = Action { implicit request =>
+    Ok(views.html.home(gameList,request.host.split(":")(0)))
   }
 
-  def mobileStart = Action { implicit request =>
-    Ok(views.html.mobilestart(request.host.split(":")(0)))
+  def board(id: String) = Action { implicit request =>
+    Ok(views.html.board(id.toInt, request.host.split(":")(0)))
   }
 
-  def getState() = Action.async {
-    game.state.map(s => Ok(s.toJson))
+  def mobileStart(id: String) = Action { implicit request =>
+    Ok(views.html.mobilestart(id.toInt,request.host.split(":")(0)))
   }
 
-  def controller(id: String) = Action { implicit request =>
-    Ok(views.html.control(id.toInt, request.host.split(":")(0)))
+  def getState(id: String) = Action.async {
+    gameList.apply(id.toInt).state.state.map(s => Ok(s.toJson))
+  }
+
+  def controller(id: String, idShip: String) = Action { implicit request =>
+    Ok(views.html.control(id.toInt, idShip.toInt, request.host.split(":")(0)))
   }
 
   def resultat(username: String, color: String) = Action { implicit request =>
     Ok(views.html.resultat(username,color, request.host.split(":")(0)))
   }
 
-  def source = Action {
+  def source(id: String) = Action {
     Ok.chunked(
-      game.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
+      gameList.apply(id.toInt).state.stream.map(_.toJson).map(e => Json.stringify(e)).map(data => s"data: $data\n\n")
     ).as("text/event-stream")
   }
 }
