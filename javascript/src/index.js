@@ -29,15 +29,15 @@ class Board extends React.Component {
         if(this.props.data) {
             const ctx = this.canvasRef.getContext("2d");
             ctx.clearRect(0, 0, this.canvasRef.width, this.canvasRef.height);
-            for(var ship in this.props.data.ships) {
-                var s = this.props.data.ships[ship];
+            for(let ship in this.props.data.ships) {
+                let s = this.props.data.ships[ship];
                 ctx.save();
                 ctx.translate(s.posX,-s.posY);
                 ctx.rotate(-s.angle*Math.PI/180);
                 this.ships(ctx,"#"+s.color,s.life);
                 ctx.restore();
 
-                /*var score = this.props.data.ships[ship].score;
+                /*let score = this.props.data.ships[ship].score;
                 if(this.props.data.bestScore < score) {
                     fetch('/modifS/' + this.props.data.ships[ship].name + '/' + score, {
                         method: 'POST',
@@ -50,8 +50,8 @@ class Board extends React.Component {
                 }*/
 
             }
-            for(var bullet in this.props.data.bullets) {
-                var b = this.props.data.bullets[bullet];
+            for(let bullet in this.props.data.bullets) {
+                let b = this.props.data.bullets[bullet];
                 ctx.save();
                 ctx.translate(b.posX, -b.posY);
                 ctx.rotate(-b.angle*Math.PI/180);
@@ -59,7 +59,7 @@ class Board extends React.Component {
                 ctx.restore();
             }
             ctx.font = "20px Arial";
-            var text = this.props.data.nameScore + " - " + this.props.data.bestScore
+            let text = this.props.data.nameScore + " - " + this.props.data.bestScore
             ctx.fillText(text,800-40*this.props.data.nameScore.length,30);
         }
         setTimeout(this.draw, 100);
@@ -74,7 +74,7 @@ class Board extends React.Component {
         ctx.lineTo(-20,18);
         ctx.closePath();
         ctx.fill();
-        var opacityShield = 0;
+        let opacityShield = 0;
         switch(life) {
             case 3 : opacityShield = 0.5;break;
             case 2 : opacityShield = 0.3;break;
@@ -98,12 +98,12 @@ class Board extends React.Component {
     }
 
     render() {
-        var rows = [];
+        let rows = [];
         if(this.props.data) {
-            var dataJ = JSON.stringify(this.props.data);
+            let dataJ = JSON.stringify(this.props.data);
 
             // Opti possible ???
-            for(var player in this.props.data.players) {
+            for(let player in this.props.data.players) {
                 rows.push(this.props.data.players[player].name+": "+this.props.data.players[player].score);
             }
         }
@@ -138,15 +138,9 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
-        this.connection = new WebSocket("ws://"+this.props.host+":9000/wsG/"+this.props.id);
-        this.connection.onopen = evt => {
-            console.log("open");
-        };
-        this.connection.onclose = evt => {
-            console.log("close");
-        };
-        this.connection.onmessage = evt => {
-            console.log("receive");
+        this.wsCoonectGame = new WebSocket("ws://"+this.props.host+":9000/wsG/"+this.props.id);
+        this.wsCoonectGame.onclose = evt => {
+            document.location.href = "/res/"+ this.id + "/" + this.name +'/'+ this.color;
         };
     }
 
@@ -154,17 +148,20 @@ class Joystick extends React.Component {
         if(this.joystickData) {
             if(this.joystickData.distance > 10) {
                 let js = JSON.stringify({"action": "moveShip","id": this.props.ship.id.toString(), "angle": this.joystickData.angle.radian.toString()});
-                this.connection.send(js);
+                this.wsCoonectGame.send(js);
             }
         }
     }
 
     shoot() {
         let js = JSON.stringify({"action": "addBullet", "id": this.props.ship.id.toString()});
-        this.connection.send(js);
+        this.wsCoonectGame.send(js);
     }
 
     componentWillMount() {
+        this.id = this.props.id;
+        this.name = this.props.ship.name;
+        this.color = this.props.ship.color;
         document.body.addEventListener('keyup', this.handleInput.bind(this), false);
     }
 
@@ -175,14 +172,14 @@ class Joystick extends React.Component {
     }
 
     componentDidMount() {
-        var that = this;
+        let that = this;
 
         // ZONE DE CONTROLE
         const joystickParams = {
             zone: document.getElementById("joystick"),
             color: "blue"
         };
-        var manager = njs.create(joystickParams);
+        let manager = njs.create(joystickParams);
         manager.on('added', function(evt, nipple) {
             that.interval = setInterval(() => that.move(), 100);
             nipple.on('move', function(evt, data) {
@@ -206,15 +203,7 @@ class Joystick extends React.Component {
     }
 
     render() {
-        var checkID=false;
-        for(var ship in this.props.data.ships) {
-            var s = this.props.data.ships[ship];
-            if(s.id == this.props.ship.id) {
-                checkID = true;
-                console.log(checkID);
-            }
-        }
-        if(checkID) {
+        if(this.props.ship) {
             return (
                 <div>
                     <div className="col-xs-6" style={stylesJoystick} id="joystick" ></div>
@@ -222,8 +211,7 @@ class Joystick extends React.Component {
                 </div>
             );
         } else {
-            this.connection.onclose();
-            document.location.href = "/res/"+ this.props.ship.name +'/'+ this.props.ship.color/*.slice(1)*/;
+            this.wsCoonectGame.onclose();
             return false;
         }
     }
@@ -268,14 +256,9 @@ class GameInstance extends React.Component {
             input: '',
             items: this.props.gameList
         }
-        this.createGameWS = new WebSocket("ws://"+this.props.host+":9000/wsGl");
-        this.createGameWS.onopen = evt => {
-            console.log("open");
-        };
-        this.createGameWS.onclose = evt => {
-            console.log("close");
-        };
-        this.createGameWS.onmessage = evt => {
+        this.wsCreateGame = new WebSocket("ws://"+this.props.host+":9000/wsGl");
+        this.wsCreateGame.onmessage = evt => {
+            this.wsCreateGame.close();
             document.location.href = "/board/"+evt.data;
         };
     }
@@ -287,7 +270,7 @@ class GameInstance extends React.Component {
     onSubmit(event) {
         event.preventDefault();
         let js = JSON.stringify({"name": this.state.input});
-        this.createGameWS.send(js);
+        this.wsCreateGame.send(js);
         this.setState({
             input: '',
             items: [...this.state.items, this.state.input]
@@ -299,7 +282,7 @@ class GameInstance extends React.Component {
             <List items={this.state.items} />
             <form onSubmit={this.onSubmit.bind(this)}>
                 <input value={this.state.input} onChange={this.onChange} />
-                <button>Submit</button>
+                <button>Create game</button>
             </form>
         </div>);
     }
@@ -308,7 +291,7 @@ class GameInstance extends React.Component {
 const List = props => (
     <ul>
         {
-            props.items.map((item, index) => <li key={index}>{item}</li>)
+            props.items.map((item, index) => <li key={index}>{item}<a href={"/board/"+index.toString()}>View</a><a href={"/m/"+index.toString()}>Play</a></li>)
         }
     </ul>
 );

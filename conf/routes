@@ -5,7 +5,7 @@ GET     /                           controllers.Application.home
 GET     /board/:id                  controllers.Application.board(id)
 GET     /m/:id                      controllers.Application.mobileStart(id)
 GET     /control/:id/:idShip        controllers.Application.controller(id,idShip)
-GET     /res/:username/:color       controllers.Application.resultat(username,color)
+GET     /res/:id/:username/:color   controllers.Application.resultat(id,username,color)
 GET     /source/:id                 controllers.Application.source(id)
 GET     /getState/:id               controllers.Application.getState(id)
 

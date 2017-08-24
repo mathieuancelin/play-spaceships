@@ -1,4 +1,4 @@
-@(name: String, color: String, host: String)
+@(id: Int, name: String, color: String, host: String)
 @import models._
 @import play.api.libs.json.Json
 
@@ -10,21 +10,18 @@
   </div>
 
   <script>
-    var ship = {};
-    ship["name"] = "@name";
-    ship["color"] = "@color";
-    function recreate() {document.location.href="/m";}
+    let wsReplay = new WebSocket("ws://@host:9000/wsG/@id");
+    wsReplay.onopen = function(event) {
+        console.log("connect !");
+    }
+    wsReplay.onmessage = function(event) {
+        document.location.href = "/control/@id/"+event.data;
+    }
+
+    function recreate() {document.location.href="/m/@id";}
     function replay() {
-      fetch('/addP/'+ ship.name + '/' + ship.color, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: '{}'
-            }).then(function(r) {
-              document.location.href = "/control/"+ship.name;
-            });
+        let js = JSON.stringify({"action": "addShip", "name": "@name", "color": "@color"});
+        wsReplay.send(js);
     }
   </script>
 }

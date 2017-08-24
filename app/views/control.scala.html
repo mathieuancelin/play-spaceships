@@ -7,11 +7,11 @@
   <div>&nbsp;</div>
 
   <script>
-    var get = {};
+    let get = {};
     get["id"] = "@id";
     get["idShip"] = "@idShip";
     get["host"] = "@host";
-    var source = new EventSource('/source/@id');
+    let source = new EventSource('/source/@id');
 
     function getShipId(el) {
         return el.id == get.idShip;
@@ -26,7 +26,7 @@
               }
           }).then((resp) => resp.json())
             .then(function(data) {
-                var ship = data.ships.filter(getShipId);
+                let ship = data.ships.filter(getShipId);
                 if(ship.length > 0) {
                     ship = ship[0];
                     document.getElementById("name").innerHTML = ship.name;
@@ -37,13 +37,9 @@
             });
     }
     source.onmessage = function(e) {
-      var data = e.data;
-      var ship = JSON.parse(data).ships.filter(getShipId);
-      if(ship.length > 0) {
-          Spaceships.joystick(document.getElementById('gamepad'), get.id, JSON.parse(data), ship[0], get.host);
-      } /*else {
-          document.location.href = "/m/@id";
-      }*/
+      let data = e.data;
+      let ship = JSON.parse(data).ships.filter(getShipId);
+      Spaceships.joystick(document.getElementById('gamepad'), get.id, JSON.parse(data), ship[0], get.host);
     };
   </script>
 }

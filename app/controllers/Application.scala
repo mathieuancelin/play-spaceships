@@ -51,7 +51,7 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
       val name = (data \ "name").as[String]
       gameList = gameList :+ new Game(indexGame,name,new StateGame,0,0)
       indexGame = indexGame +1
-      indexGame.toString()
+      (indexGame-1).toString()
     }
   }
 
@@ -119,8 +119,8 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
     Ok(views.html.control(id.toInt, idShip.toInt, request.host.split(":")(0)))
   }
 
-  def resultat(username: String, color: String) = Action { implicit request =>
-    Ok(views.html.resultat(username,color, request.host.split(":")(0)))
+  def resultat(id: String, username: String, color: String) = Action { implicit request =>
+    Ok(views.html.resultat(id.toInt, username,color, request.host.split(":")(0)))
   }
 
   def source(id: String) = Action {

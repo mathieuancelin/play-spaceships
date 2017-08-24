@@ -3,134 +3,24 @@
 
 @main("SpaceShip - Board", host = host) {
   <div id="app"></div>
-  <button id="newGame">Nouvelle partie</button>
-  <button id="hidden">+</button>
-  <div id="log" style="display:none">
-    <div id="data"></div>
-    <br />
-    <input type="text" id="mess" />
-    <button type="button" id="send">Send Message</button>
-    <button type="button" id="clearAll">CLEAR ALL</button><br />
-    <input type="text" id="nameS" />
-    <button type="button" id="deleteP">DELETE</button><br />
-    <input type="text" id="idB" />
-    <button type="button" id="deleteB">DELETE BULLET</button><br />
-    <input type="text" id="nameSh" />
-    <input type="text" id="point" />
-    <button type="button" id="addP">ADD POINT</button>
-  </div>
 
   <script>
-    var myWebSocket = new WebSocket("ws://@host:9000/wsG/@id");
-
-    myWebSocket.onopen = function(event) {
-        console.log("connect !");
-    };
-    myWebSocket.onclose = function(event) {
-        console.log("disconnect !");
-    };
-    myWebSocket.onmessage = function(event) {
-        console.log(event.data);
-    };
-
-    document.getElementById('send').addEventListener('click', function(e) {
-        var m = document.getElementById('mess').value;
-        myWebSocket.send(m);
-    });
-
-
-    //myWebSocket.close();
-
-
-
-      document.getElementById('newGame').addEventListener('click', function(e) {
-          fetch('/clear', {
-              method: 'POST',
-              header: {
-                  'Accept': 'application/hson',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      document.getElementById('hidden').addEventListener('click', function(e) {
-          var log = document.getElementById('log');
-          if(log.style.display == 'none') {
-              log.style.display = 'block';
-              document.getElementById('hidden').innerHTML = '-';
-          } else {
-              log.style.display = 'none';
-              document.getElementById('hidden').innerHTML = '+';
+    var source = new EventSource('/source/@id');
+    source.onopen = function() {
+      fetch('/getState/@id', {
+          method: 'GET',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
           }
-      });
-
-      document.getElementById('clearAll').addEventListener('click', function(e) {
-          fetch('/clear', {
-              method: 'POST',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      document.getElementById('deleteP').addEventListener('click', function(e) {
-          var name = document.getElementById('nameS').value;
-          fetch('/addS/'+name+'/ssssss', {
-              method: 'POST',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      document.getElementById('deleteB').addEventListener('click', function(e) {
-          var id = document.getElementById('idB').value;
-          fetch('/addB/'+id, {
-              method: 'POST',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      document.getElementById('addP').addEventListener('click', function(e) {
-          var name = document.getElementById('nameSh').value;
-          var point = document.getElementById('point').value;
-          fetch('/moveS/'+name+'/'+point, {
-              method: 'POST',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              },
-              body: '{}'
-          });
-      });
-
-      var source = new EventSource('/source/@id');
-      source.onopen = function() {
-          fetch('/getState/@id', {
-              method: 'GET',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-              }
-          }).then((resp) => resp.json())
-            .then(function(data) {
-               document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
-               Spaceships.board(document.getElementById('app'),data);
-            });
-      }
-      source.onmessage = function(e) {
-           var data = e.data;
-           document.getElementById('data').innerHTML =JSON.stringify(data, null, 2);
-           Spaceships.board(document.getElementById('app'), JSON.parse(data));
-      };
+      }).then((resp) => resp.json())
+        .then(function(data) {
+           Spaceships.board(document.getElementById('app'),data);
+        });
+    }
+    source.onmessage = function(e) {
+       var data = e.data;
+       Spaceships.board(document.getElementById('app'), JSON.parse(data));
+    };
   </script>
 }

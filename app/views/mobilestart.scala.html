@@ -15,23 +15,19 @@
   </div>
 
   <script>
-      var createShip = new WebSocket("ws://"+"@host"+":9000/wsG/@id");
-
-      createShip.onopen = function(event) {
-          console.log("connect !");
-      }
-
-      createShip.onmessage = function(event) {
+      let wsCreateShip = new WebSocket("ws://@host:9000/wsG/@id");
+      wsCreateShip.onmessage = function(event) {
+          wsCreateShip.close();
           document.location.href = "/control/@id/"+event.data;
       }
 
       document.getElementById('add').addEventListener('click', function(e) {
-          var name = document.getElementById('name').value;
-          var color = document.getElementById('color').value;
+          let name = document.getElementById('name').value;
+          let color = document.getElementById('color').value;
 
           if(name.length < 12 && name.length > 2 && name[0] != "?" && name != " ") {
               let js = JSON.stringify({"action": "addShip", "name": name, "color": color.slice(1)});
-              createShip.send(js);
+              wsCreateShip.send(js);
           } else {
               document.getElementById('error').innerHTML="Le nom du vaisseau doit contenir 3 à 12 caractère et aucun caractère spécial.";
           }
