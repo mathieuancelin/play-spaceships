@@ -31,7 +31,7 @@
         @if(env.Env.isDev) {
             <script src="http://@host:3000/assets/javascripts/bundle/bundle.js" type="text/javascript"></script>
         } else {
-            <script type="text/javascript" src="/assets/javascripts/bundle/bundle.js?v=${env.Env.hash}"></script>
+            <script type="text/javascript" src="/assets/javascripts/bundle/bundle.js?v=@{env.Env.hash}"></script>
         }
         @moreScripts
     </body>
