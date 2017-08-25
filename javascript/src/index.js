@@ -138,7 +138,7 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
-        this.wsCoonectGame = new WebSocket("ws://"+this.props.host+":9000/wsG/"+this.props.id);
+        this.wsCoonectGame = new WebSocket("ws://"+this.props.host+"/wsG/"+this.props.id);
         this.wsCoonectGame.onclose = evt => {
             document.location.href = "/res/"+ this.id + "/" + this.name +'/'+ this.color;
         };
@@ -256,7 +256,7 @@ class GameInstance extends React.Component {
             input: '',
             items: this.props.gameList
         }
-        this.wsCreateGame = new WebSocket("ws://"+this.props.host+":9000/wsGl");
+        this.wsCreateGame = new WebSocket("ws://"+this.props.host+"/wsGl");
         this.wsCreateGame.onmessage = evt => {
             this.wsCreateGame.close();
             document.location.href = "/board/"+evt.data;

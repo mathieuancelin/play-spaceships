@@ -10,7 +10,7 @@
   </div>
 
   <script>
-    let wsReplay = new WebSocket("ws://@host:9000/wsG/@id");
+    let wsReplay = new WebSocket("ws://@host/wsG/@id");
     wsReplay.onopen = function(event) {
         console.log("connect !");
     }

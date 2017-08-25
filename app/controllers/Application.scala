@@ -100,15 +100,18 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
   }
 
   def home = Action { implicit request =>
-    Ok(views.html.home(gameList,request.host.split(":")(0)))
+    val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
+    Ok(views.html.home(gameList, host))
   }
 
   def board(id: String) = Action { implicit request =>
-    Ok(views.html.board(id.toInt, request.host.split(":")(0)))
+    val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
+    Ok(views.html.board(id.toInt, host))
   }
 
   def mobileStart(id: String) = Action { implicit request =>
-    Ok(views.html.mobilestart(id.toInt,request.host.split(":")(0)))
+    val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
+    Ok(views.html.mobilestart(id.toInt, host))
   }
 
   def getState(id: String) = Action.async {
@@ -116,11 +119,13 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
   }
 
   def controller(id: String, idShip: String) = Action { implicit request =>
-    Ok(views.html.control(id.toInt, idShip.toInt, request.host.split(":")(0)))
+    val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
+    Ok(views.html.control(id.toInt, idShip.toInt, host))
   }
 
   def resultat(id: String, username: String, color: String) = Action { implicit request =>
-    Ok(views.html.resultat(id.toInt, username,color, request.host.split(":")(0)))
+    val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
+    Ok(views.html.resultat(id.toInt, username, color, host))
   }
 
   def source(id: String) = Action {

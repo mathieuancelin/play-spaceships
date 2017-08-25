@@ -15,7 +15,7 @@
   </div>
 
   <script>
-      let wsCreateShip = new WebSocket("ws://@host:9000/wsG/@id");
+      let wsCreateShip = new WebSocket("ws://@host/wsG/@id");
       wsCreateShip.onmessage = function(event) {
           wsCreateShip.close();
           document.location.href = "/control/@id/"+event.data;
