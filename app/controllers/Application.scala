@@ -41,7 +41,6 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
     for(game <- gameList) {
       game.state.stop()
     }
-    //game.stop()
     Future.successful(())
   })
 

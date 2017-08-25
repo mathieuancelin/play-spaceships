@@ -117,6 +117,8 @@ class StateGame() {
     val stateF = if(!state.ships.isEmpty && !state.bullets.isEmpty) {
       var bullets: Seq[Bullet] = state.bullets
       var ships: Seq[Ship] = state.ships
+      var nameScore : String = state.nameScore
+      var bestScore : Int = state.bestScore
       for(bullet <- state.bullets) {
         //VERIFIER COLLISION TIR - BORD DU TERRAIN
         if(bullet.position.x > 800 || bullet.position.x < 0 || bullet.position.y < -600 || bullet.position.y > 0) {
@@ -139,6 +141,10 @@ class StateGame() {
               ships = ships.filter(_.id != bullet.idShip)
               ships = ships :+ new Ship(p.id, p.name, p.position, p.angle, p.speed, p.color, p.velocity,
                 p.angularVelocity, p.drag, p.angularDrag, p.life, p.score + 1)
+              if(p.score+1 > bestScore) {
+                bestScore = p.score+1
+                nameScore = p.name
+              }
             })
             //Verifie la vie
             if(!(ship.life-1 <= 0)) {
@@ -151,7 +157,7 @@ class StateGame() {
           }
         }
       }
-      state.copy(ships = ships, bullets = bullets)
+      state.copy(ships = ships, bullets = bullets, nameScore = nameScore, bestScore = bestScore)
     } else {
       state
     }

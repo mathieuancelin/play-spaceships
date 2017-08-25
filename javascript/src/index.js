@@ -36,19 +36,6 @@ class Board extends React.Component {
                 ctx.rotate(-s.angle*Math.PI/180);
                 this.ships(ctx,"#"+s.color,s.life);
                 ctx.restore();
-
-                /*let score = this.props.data.ships[ship].score;
-                if(this.props.data.bestScore < score) {
-                    fetch('/modifS/' + this.props.data.ships[ship].name + '/' + score, {
-                        method: 'POST',
-                        header: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: '{}'
-                    });
-                }*/
-
             }
             for(let bullet in this.props.data.bullets) {
                 let b = this.props.data.bullets[bullet];
@@ -289,11 +276,21 @@ class GameInstance extends React.Component {
 }
 
 const List = props => (
-    <ul>
+    <table>
+        <tr>
+            <th>Room name</th>
+            <th>Views</th>
+            <th>Play</th>
+        </tr>
         {
-            props.items.map((item, index) => <li key={index}>{item}<a href={"/board/"+index.toString()}>View</a><a href={"/m/"+index.toString()}>Play</a></li>)
+            props.items.map((item, index) =>
+                <tr key={index}>
+                    <td> <Glyphicon glyph="star" /> {item}</td>
+                    <td><a href={"/board/"+index.toString()}>View</a></td>
+                    <td><a href={"/m/"+index.toString()}>Play</a></td>
+                </tr>)
         }
-    </ul>
+    </table>
 );
 
 export function partyManager(node, gameList, host) {
