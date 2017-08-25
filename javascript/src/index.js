@@ -231,10 +231,6 @@ export function joystick(node, id, data, ship, host) {
     ReactDOM.render(<Joystick data={data} ship={ship} host={host} id={id} />, node);
 }
 
-/*
- * PARTY MANAGER
- * Handle different game for spaceships
- */
 
 class GameInstance extends React.Component {
     constructor(props) {
@@ -267,6 +263,7 @@ class GameInstance extends React.Component {
     render() {
         return(<div>
             <List items={this.state.items} />
+            <br />
             <form onSubmit={this.onSubmit.bind(this)}>
                 <input value={this.state.input} onChange={this.onChange} />
                 <button>Create game</button>
@@ -277,19 +274,23 @@ class GameInstance extends React.Component {
 
 const List = props => (
     <table>
-        <tr>
-            <th>Room name</th>
-            <th>Views</th>
-            <th>Play</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>Room name</th>
+                <th>Views</th>
+                <th>Play</th>
+            </tr>
+        </thead>
+        <tbody>
         {
             props.items.map((item, index) =>
                 <tr key={index}>
-                    <td> <Glyphicon glyph="star" /> {item}</td>
-                    <td><a href={"/board/"+index.toString()}>View</a></td>
-                    <td><a href={"/m/"+index.toString()}>Play</a></td>
+                    <td><span className="glyphicon glyphicon-chevron-right"></span>{item}</td>
+                    <td><a href={"/board/"+index.toString()}><span className="glyphicon glyphicon-eye-open">View</span></a></td>
+                    <td><a href={"/m/"+index.toString()}><span className="glyphicon glyphicon-knight">Play</span></a></td>
                 </tr>)
         }
+        </tbody>
     </table>
 );
 
