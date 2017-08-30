@@ -60,7 +60,7 @@ class Ship (
   )
 
   def simulate(deltaTime: Float): Unit = {
-    var pos = this.position + (this.velocity * this.speed * 0.1f/*deltaTime*/)
+    var pos = this.position + (this.velocity * this.speed * deltaTime)
     if(pos.x < 0) {
       pos.x = 800 - (0 - pos.x)
     } else if(pos.x > 800) {
@@ -135,6 +135,6 @@ class Bullet (
   )
 
   def simulate(deltaTime: Float): Unit = {
-    this.position = this.position + (new Vector(Math.cos(this.angle*(Math.PI/180)).toFloat, Math.sin(this.angle*(Math.PI/180)).toFloat) * this.speed * 0.1f)
+    this.position = this.position + (new Vector(Math.cos(this.angle*(Math.PI/180)).toFloat, Math.sin(this.angle*(Math.PI/180)).toFloat) * this.speed * deltaTime)
   }
 }

@@ -27,14 +27,14 @@ case object TickEvent extends Action
 sealed trait State
 case class GameState(ships: Seq[Ship] = Seq.empty[Ship],bullets: Seq[Bullet] = Seq.empty[Bullet], nameScore: String = "", bestScore: Int = 0) extends State {
 
-  private var prevDate: Long = System.currentTimeMillis()
-  private var deltaTime: Float = 0
+  //private var prevDate: Long = System.currentTimeMillis()
+  //private var deltaTime: Float = 0
 
-  def simulate() = {
-    var now: Long = System.currentTimeMillis()
+  def simulate(deltaTime: Float) = {
+    /*var now: Long = System.currentTimeMillis()
     var delta: Float = now-prevDate
     delta = delta / 1000f
-    deltaTime = delta
+    deltaTime = delta*/
     //prevDate = now
     //println(prevDate)
     var shipsL: Seq[Ship] = Seq.empty[Ship]
@@ -68,6 +68,7 @@ class StateGame() {
 
   private val initialState = GameState()
   private val ref = new AtomicReference[GameState](initialState)
+  private var prevTime = System.nanoTime()
 
    def stop() = {
      Logger.info("Cancelling queue and ticks")
@@ -111,7 +112,12 @@ class StateGame() {
   val eventsAndTicks: Source[GameState, (SourceQueueWithComplete[Action], Cancellable)] = source.mergeMat(tick)((a, b) => (a, b)).scan(initialState) { (prevState, action) =>
 
     val newState = reducer(prevState, action)
-    val (ships,bullets) = newState.simulate()
+
+    var now: Long = System.nanoTime()
+    var delta: Float = ((now-prevTime) / 1000000000.0).toFloat
+    prevTime = now
+
+    val (ships,bullets) = newState.simulate(delta)
     val state = new GameState(ships,bullets,newState.nameScore,newState.bestScore)
 
     val stateF = if(!state.ships.isEmpty && !state.bullets.isEmpty) {
