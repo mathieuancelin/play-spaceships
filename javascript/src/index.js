@@ -33,7 +33,7 @@ class Board extends React.Component {
                 let s = this.props.data.ships[ship];
                 ctx.save();
                 ctx.translate(s.posX,-s.posY);
-                ctx.rotate(-s.angle*Math.PI/180);
+                ctx.rotate((90 - s.angle)*Math.PI/180);
                 this.ships(ctx,"#"+s.color,s.life);
                 ctx.restore();
             }
@@ -45,8 +45,9 @@ class Board extends React.Component {
                 this.bullet(ctx);
                 ctx.restore();
             }
-            ctx.font = "20px Arial";
-            let text = this.props.data.nameScore + " - " + this.props.data.bestScore
+            ctx.font = "20px Permanent Marker";
+            let text = this.props.data.nameScore + " - " + this.props.data.bestScore;
+            ctx.fillStyle = "#f4d533";
             ctx.fillText(text,800-40*this.props.data.nameScore.length,30);
         }
         setTimeout(this.draw, 100);
@@ -56,30 +57,34 @@ class Board extends React.Component {
         ctx.fillStyle = fillStyle;
         ctx.globalAplha = 1.0;
         ctx.beginPath();
-        ctx.moveTo(20,0);
-        ctx.lineTo(-20,-18);
-        ctx.lineTo(-20,18);
+        // ctx.moveTo(20,0);
+        // ctx.lineTo(-20,-18);
+        // ctx.lineTo(-20,18);
+        ctx.arc(-2, 1, 5, 0, 2 * Math.PI);
+        var imageShip = new Image();
+        imageShip.src = '/assets/images/spaceship.png'
+        ctx.drawImage(imageShip,-27,-33,50,85);
         ctx.closePath();
         ctx.fill();
         let opacityShield = 0;
         switch(life) {
-            case 3 : opacityShield = 0.5;break;
-            case 2 : opacityShield = 0.3;break;
+            case 3 : opacityShield = 0.15;break;
+            case 2 : opacityShield = 0.08;break;
             case 1 : opacityShield = 0;break;
         }
         ctx.fillStyle="rgba(23,145,167,"+opacityShield+")";
-        ctx.arc(-4,0,40,0,Math.PI*2,true);
+        ctx.arc(-3,9,60,0,Math.PI*2,true);
         ctx.fill();
     }
 
     bullet = (ctx) => {
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "#77c9ff";
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.moveTo(5,2);
-        ctx.lineTo(-5,2);
-        ctx.lineTo(-5,-2);
-        ctx.lineTo(5,-2);
+        ctx.moveTo(8,1.5);
+        ctx.lineTo(-8,1.5);
+        ctx.lineTo(-8,-1.5);
+        ctx.lineTo(8,-1.5);
         ctx.closePath();
         ctx.fill();
     }
@@ -96,7 +101,7 @@ class Board extends React.Component {
         }
         return (
             <div>
-              <canvas height="600" width="800" ref={ref => this.canvasRef = ref} />
+              <canvas height="600" width="1000" ref={ref => this.canvasRef = ref} />
               <Leaderboard rows={rows}/>
             </div>
         );
@@ -104,7 +109,6 @@ class Board extends React.Component {
 }
 
 const stylesJoystick = {
-    border: '1px solid black',
     backgroundImage: "url("+"/assets/images/joystick.png"+")",
     backgroundSize: "contain",
     backgroundPosition: "center",
@@ -112,7 +116,6 @@ const stylesJoystick = {
     height: '120px'
 };
 const stylesTir = {
-    border: '1px solid black',
     backgroundImage: "url("+"/assets/images/cible.png"+")",
     backgroundSize: "contain",
     backgroundPosition: "center",
@@ -164,7 +167,7 @@ class Joystick extends React.Component {
         // ZONE DE CONTROLE
         const joystickParams = {
             zone: document.getElementById("joystick"),
-            color: "blue"
+            color: "#484747"
         };
         let manager = njs.create(joystickParams);
         manager.on('added', function(evt, nipple) {
@@ -181,7 +184,7 @@ class Joystick extends React.Component {
         // ZONE DE TIR
         const tirParams = {
             zone: document.getElementById("tir"),
-            color: "blue"
+            color: "#484747"
         };
         const manager2 = njs.create(tirParams);
         manager2.on('added', function(evt, nipple) {

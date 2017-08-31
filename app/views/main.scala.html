@@ -9,24 +9,47 @@
         <link rel="stylesheet" href="/assets/stylesheets/bootstrap-theme.min.css">
         <link rel="stylesheet" href="/assets/stylesheets/joystick.css">
         <link rel="shortcut icon" type="image/png" href="/assets/images/favicon.png">
+        <link href="https://fonts.googleapis.com/css?family=Permanent+Marker" rel="stylesheet">
+
         <meta name="viewport" content="width=100%, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
-        @moreStyles 
+        @moreStyles
+
     </head>
-    <body>
-        <div class="container">
-            <div class="header clearfix">
+    <body class="spaceships">
+
+        <header class="header clearfix">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-12">
+                <h1>
+                  <a href="@routes.Application.home()" title="Home">
+                  spaceships
+                  </a>
+                </h1>
                 <nav>
-                    <ul class="nav nav-pills pull-right">
-                        <li role="presentation"><a href="@routes.Application.home()">Home</a></li>
-                    </ul>
+                  <ul class="nav nav-pills">
+                      <li role="presentation"><a href="@routes.Application.home()">Home</a></li>
+                  </ul>
                 </nav>
-                <h3 class="text-muted">spaceships</h3>
+              </div>
             </div>
-            @content
-            <footer class="footer">
-                <p>© 2017 spaceships by the Team</p>
-            </footer>
+          </div>
+        </header>
+
+        <div class="content">
+          @content
         </div>
+
+        <footer class="footer">
+          <div class="container">
+            <div class="row">
+              <div class="col-sm-12">
+                <p>© 2017 - Spaceships - Team SERLI</p>
+              </div>
+            </div>
+          </div>
+        </footer>
+
         @if(env.Env.isDev) {
             <script src="http://@host.split(":")(0):3000/assets/javascripts/bundle/bundle.js" type="text/javascript"></script>
         } else {

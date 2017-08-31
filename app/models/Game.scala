@@ -62,8 +62,8 @@ class Ship (
   def simulate(deltaTime: Float): Unit = {
     var pos = this.position + (this.velocity * this.speed * deltaTime)
     if(pos.x < 0) {
-      pos.x = 800 - (0 - pos.x)
-    } else if(pos.x > 800) {
+      pos.x = 1000 - (0 - pos.x)
+    } else if(pos.x > 1000) {
       pos.x = 0 - (800 - pos.x)
     }
     if(pos.y > 0) {
