@@ -148,6 +148,7 @@ header .nav-pills li a:hover{
 .content #partyManager{
   color:#d3d3d3;
   align-self: center;
+  margin:30px 0;
 }
 .content #partyManager table{
   margin:0 auto;
@@ -201,6 +202,7 @@ header .nav-pills li a:hover{
 .content #spaceCreator{
   color:#d3d3d3;
   width:400px;
+  margin:30px 0;
 }
 .content #spaceCreator h3{
   font-size: 20px;

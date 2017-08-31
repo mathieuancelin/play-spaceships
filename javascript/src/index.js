@@ -41,7 +41,7 @@ class Board extends React.Component {
                 let b = this.props.data.bullets[bullet];
                 ctx.save();
                 ctx.translate(b.posX, -b.posY);
-                ctx.rotate(-b.angle*Math.PI/180);
+                ctx.rotate((90 - b.angle)*Math.PI/180);
                 this.bullet(ctx);
                 ctx.restore();
             }
@@ -81,10 +81,15 @@ class Board extends React.Component {
         ctx.fillStyle = "#77c9ff";
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.moveTo(8,1.5);
-        ctx.lineTo(-8,1.5);
-        ctx.lineTo(-8,-1.5);
-        ctx.lineTo(8,-1.5);
+        // ctx.moveTo(8,1.5);
+        // ctx.lineTo(-8,1.5);
+        // ctx.lineTo(-8,-1.5);
+        // ctx.lineTo(8,-1.5);
+
+        var imageBombe = new Image();
+        imageBombe.src = '/assets/images/bombe.png'
+        ctx.drawImage(imageBombe,-6,-30,10,34);
+
         ctx.closePath();
         ctx.fill();
     }

@@ -81,7 +81,7 @@ class StateGame() {
     case AddBullet(id,idB) => {
       game.ships.filter(_.id == id).headOption
           .map(ship => {
-            game.copy(bullets = game.bullets :+ new Bullet(idB,ship.position,ship.angle,100,id))
+            game.copy(bullets = game.bullets :+ new Bullet(idB,ship.position,ship.angle,150,id))
           })
           .getOrElse(game)
     }
@@ -127,7 +127,7 @@ class StateGame() {
       var bestScore : Int = state.bestScore
       for(bullet <- state.bullets) {
         //VERIFIER COLLISION TIR - BORD DU TERRAIN
-        if(bullet.position.x > 800 || bullet.position.x < 0 || bullet.position.y < -600 || bullet.position.y > 0) {
+        if(bullet.position.x > 1000 || bullet.position.x < 0 || bullet.position.y < -600 || bullet.position.y > 0) {
           bullets = bullets.filter(_.id != bullet.id)
         }
 

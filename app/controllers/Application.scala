@@ -67,7 +67,7 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
           var color = (data \ "color").as[String]
           var rnd = new scala.util.Random
           output = game.indexShip.toString()
-          game.state.push(AddShip(new Ship(game.indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,10,color))).flatMap { _ =>
+          game.state.push(AddShip(new Ship(game.indexShip, name, new Vector(50+rnd.nextInt((750-50)+1),-(50+rnd.nextInt((550-50)+1))),0,15,color))).flatMap { _ =>
             game.indexShip += 1
             game.state.state.map(s => Ok(s.toJson))
           }

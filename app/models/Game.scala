@@ -64,7 +64,7 @@ class Ship (
     if(pos.x < 0) {
       pos.x = 1000 - (0 - pos.x)
     } else if(pos.x > 1000) {
-      pos.x = 0 - (800 - pos.x)
+      pos.x = 0 - (1000 - pos.x)
     }
     if(pos.y > 0) {
       pos.y = -600 - (0 - pos.y)
