@@ -57,6 +57,8 @@ Pour le canvas la fonction `draw` s'occupe de dessiner à chaque frame l'ensembl
 ## Problème à régler
 * Déployer dynamiquement le projet avec Webhook.
 * Résoudre le script de déploiement dans `/play-spaceships/projet/javascript.scala`.
+* Reduire le temps de chaque tick dans `eventTicks` pour obtenir un visuel plus fluide (peut être gourmand en bande passante si on réduit trop).
+* Modifier les paramètres des vaisseaux et des balles (la vitesse, la décélération, etc) par rapport au besoin du gameplay.
 * Corriger le bug du joystick (détaillé ci-dessous).
 
 ### Détails "bug joystick"
