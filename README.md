@@ -2,6 +2,13 @@
 
 ## Lancé l'application en dev
 
+### Prérequis
+
+1. Installer la dernière version de 'node'
+2. Installer la dernière version de 'sbt'
+3. Installer la dernière version de 'yarn'
+4. Télécharger java 8 et définir la variable d'environnement JAVA_HOME sur le path du JDK
+
 ##### Play
 Dans `/play-spaceships`, lancé les commandes `sbt` :
 ```
@@ -41,15 +48,19 @@ BUILD_JS = true
 
 Pour le canvas la fonction `draw` s'occupe de dessiner à chaque frame l'ensemble des vaisseaux et des tirs. C'est les fonctions `ships` et `bullet` qui s'occupe de dessiner un modèle à l'endroit indiqué par la fonction `draw`. La fonction `ship` s'occupe de gérer le tracer sur trois points (pour former le triangle) et le bouclier en fonction du nombre de vie du vaisseau.
 
+## Fonctionnalité à ajouter
+* Suppression d'une partie à partir de la liste des parties.
+* Ajouter la génération d'un QRCode pour rejoindre chaque parties.
+* Catch les erreurs de page non trouvé.
+
 
 ## Problème à régler
 * Déployer dynamiquement le projet avec Webhook.
 * Résoudre le script de déploiement dans `/play-spaceships/projet/javascript.scala`.
-* Corriger la vitesse de déplacement des vaisseaux de plus en plus élevés en fonction du nombre d'action des vaisseaux sur le terrain.
-* Corriger les problèmes du joystick de déplacement qui peut parfois se bloquer dans une direction (même quand on relache).
+* Corriger le bug du joystick (détaillé ci-dessous).
 
-### Piste à voir (des problèmes)
-* L'accélération du vaisseau peut venir des 'ticks' d'Akka Stream qui appel directement la méthode qui simule le vaisseau. Il peut aussi être causé par le nombre plus important d'envoie d'évenement par le joystick (qui incrémente continuellement l'accélération) par rapport à la décélération qui ne suit pas.
-* Modifier la facon dont est géré le joystick (nipple.js) ou trouver une meilleure librairie.
-* Modifier les paramètres de vélocité du vaisseau, peut résoudre le bug de vitesse. (augmenter le taux de décélération ou diminuer le taux d'accelération par événement).
-* Le vaisseau calcul sa vélocité et une décélération, à voir s'il ne faut pas revenir à un déplacement simple (sans gestion de la vélocité).
+### Détails "bug joystick"
+* Le joystick peut parfois (rarement) se bloquer et garder le setInterval ouvert. Lorsqu'on déplace à nouveau le joystick on obtient du interval qui envoie des données ce qui double la vitesse du vaisseau (peut se bloquer plusieurs fois).
+###### Piste:
+* Voir s'il y a une autre façon de gérer le joystick (rajout d'un boolean, remplacer le setInterval).
+* Changer de librairie pour le joystick (actuellement nipple.js).
