@@ -75,7 +75,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "30a6fdf971ef485af688"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "4ff360d60fa260ebf53c"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -791,6 +791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _this3.joystickData = '';
 	        _this3.color = '000000';
+	        _this3.activateJoystick = false;
 	        _this3.wsCoonectGame = new WebSocket("ws://" + _this3.props.host + "/wsG/" + _this3.props.id);
 	        _this3.wsCoonectGame.onclose = function (evt) {
 	            document.location.href = "/res/" + _this3.id + "/" + _this3.name + '/' + _this3.color;
@@ -801,7 +802,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(Joystick, [{
 	        key: 'move',
 	        value: function move() {
-	            if (this.joystickData) {
+	            if (this.joystickData && this.activateJoystick) {
 	                if (this.joystickData.distance > 10) {
 	                    var js = JSON.stringify({ "action": "moveShip", "id": this.props.ship.id.toString(), "angle": this.joystickData.angle.radian.toString() });
 	                    this.wsCoonectGame.send(js);
@@ -840,17 +841,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	                color: "#484747"
 	            };
 	            var manager = _nipplejs2.default.create(joystickParams);
+	            that.interval = setInterval(function () {
+	                return that.move();
+	            }, 100);
 	            manager.on('added', function (evt, nipple) {
-	                that.interval = setInterval(function () {
-	                    return that.move();
-	                }, 100);
+	                that.activateJoystick = true;
 	                nipple.on('move', function (evt, data) {
+	                    that.activateJoystick = true;
 	                    that.joystickData = data;
 	                });
 	            }).on('removed', function (evt) {
-	                if (that.interval) {
-	                    window.clearInterval(that.interval);
-	                }
+	                that.activateJoystick = false;
 	            });
 
 	            // ZONE DE TIR

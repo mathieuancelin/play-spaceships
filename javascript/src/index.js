@@ -133,6 +133,7 @@ class Joystick extends React.Component {
         super(props);
         this.joystickData = '';
         this.color = '000000';
+        this.activateJoystick = false;
         this.wsCoonectGame = new WebSocket("ws://"+this.props.host+"/wsG/"+this.props.id);
         this.wsCoonectGame.onclose = evt => {
             document.location.href = "/res/"+ this.id + "/" + this.name +'/'+ this.color;
@@ -140,7 +141,7 @@ class Joystick extends React.Component {
     }
 
     move() {
-        if(this.joystickData) {
+        if(this.joystickData && this.activateJoystick) {
             if(this.joystickData.distance > 10) {
                 let js = JSON.stringify({"action": "moveShip","id": this.props.ship.id.toString(), "angle": this.joystickData.angle.radian.toString()});
                 this.wsCoonectGame.send(js);
@@ -175,15 +176,15 @@ class Joystick extends React.Component {
             color: "#484747"
         };
         let manager = njs.create(joystickParams);
+        that.interval = setInterval(() => that.move(), 100);
         manager.on('added', function(evt, nipple) {
-            that.interval = setInterval(() => that.move(), 100);
+            that.activateJoystick = true;
             nipple.on('move', function(evt, data) {
+                that.activateJoystick = true;
                 that.joystickData = data;
             });
         }).on('removed', function(evt) {
-            if(that.interval) {
-                window.clearInterval(that.interval);
-            }
+            that.activateJoystick = false;
         });
 
         // ZONE DE TIR
