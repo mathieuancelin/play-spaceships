@@ -61,8 +61,8 @@ class Board extends React.Component {
         // ctx.lineTo(-20,-18);
         // ctx.lineTo(-20,18);
         ctx.arc(-2, 1, 5, 0, 2 * Math.PI);
-        var imageShip = new Image();
-        imageShip.src = '/assets/images/spaceship.png'
+        let imageShip = new Image();
+        imageShip.src = '/assets/images/spaceship.png';
         ctx.drawImage(imageShip,-27,-33,50,85);
         ctx.closePath();
         ctx.fill();
@@ -86,8 +86,8 @@ class Board extends React.Component {
         // ctx.lineTo(-8,-1.5);
         // ctx.lineTo(8,-1.5);
 
-        var imageBombe = new Image();
-        imageBombe.src = '/assets/images/bombe.png'
+        let imageBombe = new Image();
+        imageBombe.src = '/assets/images/bombe.png';
         ctx.drawImage(imageBombe,-6,-30,10,34);
 
         ctx.closePath();
