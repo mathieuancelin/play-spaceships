@@ -51,18 +51,11 @@ Pour le canvas la fonction `draw` s'occupe de dessiner à chaque frame l'ensembl
 ## Fonctionnalité à ajouter
 * Suppression d'une partie à partir de la liste des parties.
 * Ajouter la génération d'un QRCode pour rejoindre chaque parties.
-* Catch les erreurs de page non trouvé.
-
 
 ## Problème à régler
 * Déployer dynamiquement le projet avec Webhook.
 * Résoudre le script de déploiement dans `/play-spaceships/projet/javascript.scala`.
+
+## Ajustement
 * Reduire le temps de chaque tick dans `eventTicks` pour obtenir un visuel plus fluide (peut être gourmand en bande passante si on réduit trop).
 * Modifier les paramètres des vaisseaux et des balles (la vitesse, la décélération, etc) par rapport au besoin du gameplay.
-* Corriger le bug du joystick (détaillé ci-dessous).
-
-### Détails "bug joystick"
-* Le joystick peut parfois (rarement) se bloquer et garder le setInterval ouvert. Lorsqu'on déplace à nouveau le joystick on obtient du interval qui envoie des données ce qui double la vitesse du vaisseau (peut se bloquer plusieurs fois).
-###### Piste:
-* Voir s'il y a une autre façon de gérer le joystick (rajout d'un boolean, remplacer le setInterval).
-* Changer de librairie pour le joystick (actuellement nipple.js).

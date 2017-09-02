@@ -195,7 +195,10 @@ class Joystick extends React.Component {
         const manager2 = njs.create(tirParams);
         manager2.on('added', function(evt, nipple) {
             that.shoot();
-        });
+        })/*.on('removed', function(evt) {
+          // On peut aussi ajouter un boolean pour tirer toutes les x secondes avec setInterval (comme pour le déplacement)
+          // Permet de résoudre partiellement le bug des iphones qui peut bloquer le bouton de tir
+        })*/;
     }
 
     render() {

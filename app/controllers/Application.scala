@@ -13,6 +13,7 @@ import models._
 import play.api.inject.ApplicationLifecycle
 import play.api.libs.json._
 import play.api.mvc._
+import play.api.mvc.Result._
 import state._
 
 
@@ -105,12 +106,20 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
 
   def board(id: String) = Action { implicit request =>
     val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
-    Ok(views.html.board(id.toInt, host))
+    if(!gameList.isDefinedAt(id.toInt)) {
+      Redirect("/")
+    } else {
+      Ok(views.html.board(id.toInt, host))
+    }
   }
 
   def mobileStart(id: String) = Action { implicit request =>
     val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
-    Ok(views.html.mobilestart(id.toInt, host))
+    if(!gameList.isDefinedAt(id.toInt)) {
+      Redirect("/")
+    } else {
+      Ok(views.html.mobilestart(id.toInt, host))
+    }
   }
 
   def getState(id: String) = Action.async {
@@ -119,12 +128,20 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
 
   def controller(id: String, idShip: String) = Action { implicit request =>
     val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
-    Ok(views.html.control(id.toInt, idShip.toInt, host))
+    if(!gameList.isDefinedAt(id.toInt)) {
+      Redirect("/")
+    } else {
+      Ok(views.html.control(id.toInt, idShip.toInt, host))
+    }
   }
 
   def resultat(id: String, username: String, color: String) = Action { implicit request =>
     val host = if(env.Env.isProd) request.host.split(":")(0) else request.host
-    Ok(views.html.resultat(id.toInt, username, color, host))
+    if(!gameList.isDefinedAt(id.toInt)) {
+      Redirect("/")
+    } else {
+      Ok(views.html.resultat(id.toInt, username, color, host))
+    }
   }
 
   def source(id: String) = Action {
