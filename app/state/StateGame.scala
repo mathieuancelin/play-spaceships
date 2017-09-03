@@ -107,7 +107,7 @@ class StateGame() {
     case _ => game
   }
 
-  val tick: Source[Action, Cancellable] = Source.tick(0.second, 100.millis, NotUsed).map(_ => TickEvent)
+  val tick: Source[Action, Cancellable] = Source.tick(0.second, 50.millis, NotUsed).map(_ => TickEvent)
   val source: Source[Action, SourceQueueWithComplete[Action]] = Source.queue[Action](50000, OverflowStrategy.dropTail)
   val eventsAndTicks: Source[GameState, (SourceQueueWithComplete[Action], Cancellable)] = source.mergeMat(tick)((a, b) => (a, b)).scan(initialState) { (prevState, action) =>
 

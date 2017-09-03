@@ -47,11 +47,28 @@ class Application @Inject()(lifecycle: ApplicationLifecycle, ws: WSClient)(impli
 
   def socketGameList() = WebSocket.accept[String, String] { request =>
     Flow[String].map {res =>
+      var output = ""
       val data: JsValue = Json.parse(res)
-      val name = (data \ "name").as[String]
-      gameList = gameList :+ new Game(indexGame,name,new StateGame,0,0)
-      indexGame = indexGame +1
-      (indexGame-1).toString()
+      val action = (data \ "action").as[String]
+      action match {
+        case "addGame" => {
+          val name = (data \ "name").as[String]
+          gameList = gameList :+ new Game(indexGame,name,new StateGame,0,0)
+          output = indexGame.toString()
+          indexGame = indexGame +1
+        }
+        case "deleteGame" => { //Doesn't work, can't delete first element
+          val id = (data \ "id").as[String]
+          gameList = gameList.drop(id.toInt)
+          output = id
+        }
+        case "clearGame" => {
+          gameList = Seq.empty[Game]
+          indexGame = 0
+        }
+        case _ => println("Json data unknown")
+      }
+      output
     }
   }
 

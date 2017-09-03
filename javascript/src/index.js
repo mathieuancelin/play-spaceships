@@ -45,10 +45,12 @@ class Board extends React.Component {
                 this.bullet(ctx);
                 ctx.restore();
             }
-            ctx.font = "20px Permanent Marker";
-            let text = this.props.data.nameScore + " - " + this.props.data.bestScore;
-            ctx.fillStyle = "#f4d533";
-            ctx.fillText(text,800-40*this.props.data.nameScore.length,30);
+            if(this.props.data.bestScore > 0) {
+              ctx.font = "20px Permanent Marker";
+              let text = this.props.data.nameScore + " - " + this.props.data.bestScore;
+              ctx.fillStyle = "#f4d533";
+              ctx.fillText(text,1000-40*this.props.data.nameScore.length,30);
+            }
         }
         setTimeout(this.draw, 100);
     }
@@ -251,10 +253,10 @@ class GameInstance extends React.Component {
             input: '',
             items: this.props.gameList
         }
-        this.wsCreateGame = new WebSocket("ws://"+this.props.host+"/wsGl");
-        this.wsCreateGame.onmessage = evt => {
-            this.wsCreateGame.close();
-            document.location.href = "/board/"+evt.data;
+        this.wsHandleGames = new WebSocket("ws://"+this.props.host+"/wsGl");
+        this.wsHandleGames.onmessage = evt => {
+            //this.wsHandleGames.close();
+            //document.location.href = "/board/"+evt.data;
         };
     }
 
@@ -264,17 +266,45 @@ class GameInstance extends React.Component {
 
     onSubmit(event) {
         event.preventDefault();
-        let js = JSON.stringify({"name": this.state.input});
-        this.wsCreateGame.send(js);
+        let js = JSON.stringify({"action": "addGame", "name": this.state.input});
+        this.wsHandleGames.send(js);
         this.setState({
             input: '',
             items: [...this.state.items, this.state.input]
         });
     }
 
+    clearGame() {
+      let js = JSON.stringify({"action": "clearGame"});
+      this.wsHandleGames.send(js);
+      this.setState({
+        input: '',
+        items: []
+      });
+    }
+
     render() {
         return(<div>
-            <List items={this.state.items} />
+            <table>
+              <thead>
+                <tr>
+                  <th>Room name</th>
+                  <th>Views</th>
+                  <th>Play</th>
+                  <th><button onClick={this.clearGame.bind(this)}><span className="glyphicon glyphicon-remove"></span></button></th>
+                </tr>
+              </thead>
+              <tbody>
+              {
+                this.state.items.map((item, index) =>
+                  <tr key={index}>
+                    <td><span className="glyphicon glyphicon-chevron-right"></span>{item}</td>
+                    <td><a href={"/board/"+index.toString()}><span className="glyphicon glyphicon-eye-open">View</span></a></td>
+                    <td><a href={"/m/"+index.toString()}><span className="glyphicon glyphicon-knight">Play</span></a></td>
+                  </tr>)
+              }
+              </tbody>
+            </table>
             <br />
             <form onSubmit={this.onSubmit.bind(this)}>
                 <input value={this.state.input} onChange={this.onChange} />
@@ -284,27 +314,37 @@ class GameInstance extends React.Component {
     }
 }
 
-const List = props => (
-    <table>
-        <thead>
+class List extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <div>
+        <table>
+          <thead>
             <tr>
-                <th>Room name</th>
-                <th>Views</th>
-                <th>Play</th>
+              <th>Room name</th>
+              <th>Views</th>
+              <th>Play</th>
             </tr>
-        </thead>
-        <tbody>
-        {
-            props.items.map((item, index) =>
-                <tr key={index}>
-                    <td><span className="glyphicon glyphicon-chevron-right"></span>{item}</td>
-                    <td><a href={"/board/"+index.toString()}><span className="glyphicon glyphicon-eye-open">View</span></a></td>
-                    <td><a href={"/m/"+index.toString()}><span className="glyphicon glyphicon-knight">Play</span></a></td>
-                </tr>)
-        }
-        </tbody>
-    </table>
-);
+          </thead>
+          <tbody>
+          {
+            this.props.items.map((item, index) =>
+              <tr key={index}>
+                <td><span className="glyphicon glyphicon-chevron-right"></span>{item}</td>
+                <td><a href={"/board/"+index.toString()}><span className="glyphicon glyphicon-eye-open">View</span></a></td>
+                <td><a href={"/m/"+index.toString()}><span className="glyphicon glyphicon-knight">Play</span></a></td>
+              </tr>)
+          }
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
 
 export function partyManager(node, gameList, host) {
     ReactDOM.render(<GameInstance gameList={gameList} host={host} />, node);

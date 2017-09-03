@@ -75,7 +75,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "4ff360d60fa260ebf53c"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "2f2840c027d94b2544be"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -678,10 +678,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    _this.bullet(ctx);
 	                    ctx.restore();
 	                }
-	                ctx.font = "20px Permanent Marker";
-	                var text = _this.props.data.nameScore + " - " + _this.props.data.bestScore;
-	                ctx.fillStyle = "#f4d533";
-	                ctx.fillText(text, 800 - 40 * _this.props.data.nameScore.length, 30);
+	                if (_this.props.data.bestScore > 0) {
+	                    ctx.font = "20px Permanent Marker";
+	                    var text = _this.props.data.nameScore + " - " + _this.props.data.bestScore;
+	                    ctx.fillStyle = "#f4d533";
+	                    ctx.fillText(text, 1000 - 40 * _this.props.data.nameScore.length, 30);
+	                }
 	            }
 	            setTimeout(_this.draw, 100);
 	        };
@@ -862,7 +864,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var manager2 = _nipplejs2.default.create(tirParams);
 	            manager2.on('added', function (evt, nipple) {
 	                that.shoot();
-	            });
+	            }) /*.on('removed', function(evt) {
+	               // On peut aussi ajouter un boolean pour tirer toutes les x secondes avec setInterval (comme pour le déplacement)
+	               // Permet de résoudre partiellement le bug des iphones qui peut bloquer le bouton de tir
+	               })*/;
 	        }
 	    }, {
 	        key: 'render',
@@ -941,10 +946,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            input: '',
 	            items: _this5.props.gameList
 	        };
-	        _this5.wsCreateGame = new WebSocket("ws://" + _this5.props.host + "/wsGl");
-	        _this5.wsCreateGame.onmessage = function (evt) {
-	            _this5.wsCreateGame.close();
-	            document.location.href = "/board/" + evt.data;
+	        _this5.wsHandleGames = new WebSocket("ws://" + _this5.props.host + "/wsGl");
+	        _this5.wsHandleGames.onmessage = function (evt) {
+	            //this.wsHandleGames.close();
+	            //document.location.href = "/board/"+evt.data;
 	        };
 	        return _this5;
 	    }
@@ -953,11 +958,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'onSubmit',
 	        value: function onSubmit(event) {
 	            event.preventDefault();
-	            var js = JSON.stringify({ "name": this.state.input });
-	            this.wsCreateGame.send(js);
+	            var js = JSON.stringify({ "action": "addGame", "name": this.state.input });
+	            this.wsHandleGames.send(js);
 	            this.setState({
 	                input: '',
 	                items: [].concat(_toConsumableArray(this.state.items), [this.state.input])
+	            });
+	        }
+	    }, {
+	        key: 'clearGame',
+	        value: function clearGame() {
+	            var js = JSON.stringify({ "action": "clearGame" });
+	            this.wsHandleGames.send(js);
+	            this.setState({
+	                input: '',
+	                items: []
 	            });
 	        }
 	    }, {
@@ -966,7 +981,84 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return _react2.default.createElement(
 	                'div',
 	                null,
-	                _react2.default.createElement(List, { items: this.state.items }),
+	                _react2.default.createElement(
+	                    'table',
+	                    null,
+	                    _react2.default.createElement(
+	                        'thead',
+	                        null,
+	                        _react2.default.createElement(
+	                            'tr',
+	                            null,
+	                            _react2.default.createElement(
+	                                'th',
+	                                null,
+	                                'Room name'
+	                            ),
+	                            _react2.default.createElement(
+	                                'th',
+	                                null,
+	                                'Views'
+	                            ),
+	                            _react2.default.createElement(
+	                                'th',
+	                                null,
+	                                'Play'
+	                            ),
+	                            _react2.default.createElement(
+	                                'th',
+	                                null,
+	                                _react2.default.createElement(
+	                                    'button',
+	                                    { onClick: this.clearGame.bind(this) },
+	                                    _react2.default.createElement('span', { className: 'glyphicon glyphicon-remove' })
+	                                )
+	                            )
+	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        'tbody',
+	                        null,
+	                        this.state.items.map(function (item, index) {
+	                            return _react2.default.createElement(
+	                                'tr',
+	                                { key: index },
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement('span', { className: 'glyphicon glyphicon-chevron-right' }),
+	                                    item
+	                                ),
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement(
+	                                        'a',
+	                                        { href: "/board/" + index.toString() },
+	                                        _react2.default.createElement(
+	                                            'span',
+	                                            { className: 'glyphicon glyphicon-eye-open' },
+	                                            'View'
+	                                        )
+	                                    )
+	                                ),
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement(
+	                                        'a',
+	                                        { href: "/m/" + index.toString() },
+	                                        _react2.default.createElement(
+	                                            'span',
+	                                            { className: 'glyphicon glyphicon-knight' },
+	                                            'Play'
+	                                        )
+	                                    )
+	                                )
+	                            );
+	                        })
+	                    )
+	                ),
 	                _react2.default.createElement('br', null),
 	                _react2.default.createElement(
 	                    'form',
@@ -985,77 +1077,96 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return GameInstance;
 	}(_react2.default.Component);
 
-	var List = function List(props) {
-	    return _react2.default.createElement(
-	        'table',
-	        null,
-	        _react2.default.createElement(
-	            'thead',
-	            null,
-	            _react2.default.createElement(
-	                'tr',
+	var List = function (_React$Component5) {
+	    _inherits(List, _React$Component5);
+
+	    function List(props) {
+	        _classCallCheck(this, List);
+
+	        return _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).call(this, props));
+	    }
+
+	    _createClass(List, [{
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                'div',
 	                null,
 	                _react2.default.createElement(
-	                    'th',
+	                    'table',
 	                    null,
-	                    'Room name'
-	                ),
-	                _react2.default.createElement(
-	                    'th',
-	                    null,
-	                    'Views'
-	                ),
-	                _react2.default.createElement(
-	                    'th',
-	                    null,
-	                    'Play'
-	                )
-	            )
-	        ),
-	        _react2.default.createElement(
-	            'tbody',
-	            null,
-	            props.items.map(function (item, index) {
-	                return _react2.default.createElement(
-	                    'tr',
-	                    { key: index },
 	                    _react2.default.createElement(
-	                        'td',
-	                        null,
-	                        _react2.default.createElement('span', { className: 'glyphicon glyphicon-chevron-right' }),
-	                        item
-	                    ),
-	                    _react2.default.createElement(
-	                        'td',
+	                        'thead',
 	                        null,
 	                        _react2.default.createElement(
-	                            'a',
-	                            { href: "/board/" + index.toString() },
+	                            'tr',
+	                            null,
 	                            _react2.default.createElement(
-	                                'span',
-	                                { className: 'glyphicon glyphicon-eye-open' },
-	                                'View'
-	                            )
-	                        )
-	                    ),
-	                    _react2.default.createElement(
-	                        'td',
-	                        null,
-	                        _react2.default.createElement(
-	                            'a',
-	                            { href: "/m/" + index.toString() },
+	                                'th',
+	                                null,
+	                                'Room name'
+	                            ),
 	                            _react2.default.createElement(
-	                                'span',
-	                                { className: 'glyphicon glyphicon-knight' },
+	                                'th',
+	                                null,
+	                                'Views'
+	                            ),
+	                            _react2.default.createElement(
+	                                'th',
+	                                null,
 	                                'Play'
 	                            )
 	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        'tbody',
+	                        null,
+	                        this.props.items.map(function (item, index) {
+	                            return _react2.default.createElement(
+	                                'tr',
+	                                { key: index },
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement('span', { className: 'glyphicon glyphicon-chevron-right' }),
+	                                    item
+	                                ),
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement(
+	                                        'a',
+	                                        { href: "/board/" + index.toString() },
+	                                        _react2.default.createElement(
+	                                            'span',
+	                                            { className: 'glyphicon glyphicon-eye-open' },
+	                                            'View'
+	                                        )
+	                                    )
+	                                ),
+	                                _react2.default.createElement(
+	                                    'td',
+	                                    null,
+	                                    _react2.default.createElement(
+	                                        'a',
+	                                        { href: "/m/" + index.toString() },
+	                                        _react2.default.createElement(
+	                                            'span',
+	                                            { className: 'glyphicon glyphicon-knight' },
+	                                            'Play'
+	                                        )
+	                                    )
+	                                )
+	                            );
+	                        })
 	                    )
-	                );
-	            })
-	        )
-	    );
-	};
+	                )
+	            );
+	        }
+	    }]);
+
+	    return List;
+	}(_react2.default.Component);
 
 	function partyManager(node, gameList, host) {
 	    _reactDom2.default.render(_react2.default.createElement(GameInstance, { gameList: gameList, host: host }), node);

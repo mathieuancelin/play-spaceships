@@ -49,7 +49,6 @@ BUILD_JS = true
 Pour le canvas la fonction `draw` s'occupe de dessiner à chaque frame l'ensemble des vaisseaux et des tirs. C'est les fonctions `ships` et `bullet` qui s'occupe de dessiner un modèle à l'endroit indiqué par la fonction `draw`. La fonction `ship` s'occupe de gérer le tracer sur trois points (pour former le triangle) et le bouclier en fonction du nombre de vie du vaisseau.
 
 ## Fonctionnalité à ajouter
-* Suppression d'une partie à partir de la liste des parties.
 * Ajouter la génération d'un QRCode pour rejoindre chaque parties.
 
 ## Problème à régler
